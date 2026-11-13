@@ -1,0 +1,11 @@
+# Little Alexandria. The front door and shared libraries are public; your own shelves are not.
+User-agent: *
+Allow: /
+Allow: /u/
+Disallow: /api/
+Disallow: /library
+Disallow: /garden
+Disallow: /discover
+Disallow: /brand
+
+Sitemap: https://little-alexandria.pages.dev/sitemap.xml
