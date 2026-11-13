@@ -52,14 +52,17 @@ Browser (React 19, TanStack Router + Query, Motion, dnd-kit, Tailwind 4)
    ▼
 Cloudflare Pages
    ├── static assets (dist/)                   the app, fonts, art
+   ├── functions/_middleware.ts ───────────▶  server/site.ts   every page's words in the raw HTML,
+   │                                             Markdown on request, real 404s, llms.txt, openapi.json
    ├── functions/api/[[route]].ts ── Hono ──▶  server/app.ts
    │                                             ├── auth.ts      Google OAuth (Arctic, PKCE) + guest sign-in for dev
    │                                             ├── session.ts   random tokens, only their SHA-256 is stored
    │                                             ├── store.ts     every SQL statement in the app
    │                                             ├── library.ts   pure rules: positions, patches, stats
    │                                             ├── related.ts   more-like-this, Discover, Wikidata adaptations
+   │                                             ├── ratelimit.ts IETF RateLimit headers, 429 + Retry-After
+   │                                             ├── openapi.ts   the OpenAPI 3.1 spec, checked against the routes
    │                                             └── sources/     Open Library, Google Books, matching, genres
-   └── functions/u/[handle].ts                  rewrites link previews for shared libraries
    ▼
 D1 (SQLite at the edge)
 ```
@@ -85,6 +88,14 @@ Shelf order uses **fractional indexing**: moving a book writes one row, never th
 - **Imports run outside React** in small batches, so they keep going while dialogs close, pause and resume, and stay within the Workers subrequest budget. Matching trusts Open Library's author filter (it knows Лев Толстой is Leo Tolstoy), falls back to forgiving searches for typos, and prefers the edition everyone owns over the study guide nobody does.
 - **The art is code.** Every drawing is SVG passed through a shared wobble filter and a crayon-grain filter; flowers are seeded by book, so each is unique and never changes.
 
+### For agents and crawlers
+
+The words on every public page (home, [about](https://little-alexandria.pages.dev/about), [privacy](https://little-alexandria.pages.dev/privacy), [contact](https://little-alexandria.pages.dev/contact), [API docs](https://little-alexandria.pages.dev/docs), and shared libraries) come from one source, `shared/site.ts`, and are rendered three ways: React for people, plain HTML inside `#root` for crawlers that run no JavaScript, and Markdown for agents that send `Accept: text/markdown` or add `.md` to a path. Unknown paths return a real 404. [`/llms.txt`](https://little-alexandria.pages.dev/llms.txt) says when an agent should use the site, and [`/openapi.json`](https://little-alexandria.pages.dev/openapi.json) describes every endpoint; a test fails if a route is missing from it, or if a real response doesn't match its schema.
+
+### Accessibility
+
+Every page is checked with axe against WCAG 2.2 AA in both themes, on desktop and phone, as part of the end-to-end suite. Text meets 4.5:1 contrast, form fields have 3:1 borders and visible focus rings, controls are named the way they read (so speech input works), and reduced motion is respected throughout.
+
 ## Run it yourself
 
 You'll need Node 22+ and pnpm.
@@ -100,7 +111,7 @@ Open <http://localhost:5173> and step in as a guest. Google sign-in needs `GOOGL
 | Command                                         | What it does                                                                                                         |
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `pnpm test`                                     | Unit and API tests (Vitest). API tests run against a real in-memory D1.                                              |
-| `pnpm test:e2e`                                 | Playwright on desktop and phone, against the production build under `wrangler pages dev` with the offline catalogue. |
+| `pnpm test:e2e`                                 | Playwright on desktop and phone, against the production build under `wrangler pages dev` with the offline catalogue, including axe accessibility scans. |
 | `pnpm lint` · `pnpm typecheck`                  | ESLint and TypeScript project references.                                                                            |
 | `pnpm dlx tsx scripts/check-import.ts list.csv` | Dry-run an import against the live catalogue and report what matched.                                                |
 

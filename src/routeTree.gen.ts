@@ -10,10 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as BrandRouteImport } from './routes/brand'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DiscoverRouteImport } from './routes/discover'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as GardenRouteImport } from './routes/garden'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LibraryEntryIdRouteImport } from './routes/library.$entryId'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
 
@@ -22,14 +26,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BrandRoute = BrandRouteImport.update({
   id: '/brand',
   path: '/brand',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DiscoverRoute = DiscoverRouteImport.update({
   id: '/discover',
   path: '/discover',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GardenRoute = GardenRouteImport.update({
@@ -40,6 +59,11 @@ const GardenRoute = GardenRouteImport.update({
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryEntryIdRoute = LibraryEntryIdRouteImport.update({
@@ -55,29 +79,41 @@ const UHandleRoute = UHandleRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/brand': typeof BrandRoute
+  '/contact': typeof ContactRoute
   '/discover': typeof DiscoverRoute
+  '/docs': typeof DocsRoute
   '/garden': typeof GardenRoute
   '/library': typeof LibraryRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/library/$entryId': typeof LibraryEntryIdRoute
   '/u/$handle': typeof UHandleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/brand': typeof BrandRoute
+  '/contact': typeof ContactRoute
   '/discover': typeof DiscoverRoute
+  '/docs': typeof DocsRoute
   '/garden': typeof GardenRoute
   '/library': typeof LibraryRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/library/$entryId': typeof LibraryEntryIdRoute
   '/u/$handle': typeof UHandleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/brand': typeof BrandRoute
+  '/contact': typeof ContactRoute
   '/discover': typeof DiscoverRoute
+  '/docs': typeof DocsRoute
   '/garden': typeof GardenRoute
   '/library': typeof LibraryRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/library/$entryId': typeof LibraryEntryIdRoute
   '/u/$handle': typeof UHandleRoute
 }
@@ -85,38 +121,54 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/brand'
+    | '/contact'
     | '/discover'
+    | '/docs'
     | '/garden'
     | '/library'
+    | '/privacy'
     | '/library/$entryId'
     | '/u/$handle'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/brand'
+    | '/contact'
     | '/discover'
+    | '/docs'
     | '/garden'
     | '/library'
+    | '/privacy'
     | '/library/$entryId'
     | '/u/$handle'
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/brand'
+    | '/contact'
     | '/discover'
+    | '/docs'
     | '/garden'
     | '/library'
+    | '/privacy'
     | '/library/$entryId'
     | '/u/$handle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   BrandRoute: typeof BrandRoute
+  ContactRoute: typeof ContactRoute
   DiscoverRoute: typeof DiscoverRoute
+  DocsRoute: typeof DocsRoute
   GardenRoute: typeof GardenRoute
   LibraryRoute: typeof LibraryRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   UHandleRoute: typeof UHandleRoute
 }
 
@@ -129,6 +181,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/brand': {
       id: '/brand'
       path: '/brand'
@@ -136,11 +195,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BrandRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/discover': {
       id: '/discover'
       path: '/discover'
       fullPath: '/discover'
       preLoaderRoute: typeof DiscoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/garden': {
@@ -155,6 +228,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library/$entryId': {
@@ -187,10 +267,14 @@ const LibraryRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   BrandRoute: BrandRoute,
+  ContactRoute: ContactRoute,
   DiscoverRoute: DiscoverRoute,
+  DocsRoute: DocsRoute,
   GardenRoute: GardenRoute,
   LibraryRoute: LibraryRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   UHandleRoute: UHandleRoute,
 }
 export const routeTree = rootRouteImport

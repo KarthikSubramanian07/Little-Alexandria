@@ -9,6 +9,8 @@ import { Flower } from './art/Flower'
 import { CRAYON } from './art/palette'
 import { GoalSun, OvergrownBookcase, PotWithSprout, WateringCan } from './art/scenes'
 import { ThemeToggle } from './AppShell'
+import { HOME } from '../../shared/site'
+import { SiteFooter } from './DocPage'
 import { Wordmark } from './Wordmark'
 
 const ERRORS: Record<string, string> = {
@@ -46,22 +48,21 @@ export function Landing({ user, error }: { user: User | null; error?: string }) 
         <ThemeToggle />
       </header>
 
-      <main>
+      <main id="main">
         <section className="grid items-center gap-10 pt-6 pb-20 md:grid-cols-[1.1fr_1fr] md:pt-14 md:pb-28">
           <div>
             <motion.p {...rise(0.05)} className="font-hand text-2xl text-moss">
-              a reading room, planted by you
+              {HOME.kicker}
             </motion.p>
             <motion.h1
               {...rise(0.12)}
               className="mt-3 font-display text-[clamp(2.75rem,7vw,5.4rem)] leading-[0.95] font-medium tracking-[-0.025em] text-balance"
             >
-              Every great reader deserves a <span className="ink-underline italic">great library</span>.
+              {HOME.titleLead}
+              <span className="ink-underline italic">{HOME.titleEmphasis}</span>.
             </motion.h1>
             <motion.p {...rise(0.2)} className="mt-6 max-w-lg text-lg leading-relaxed text-ink-soft">
-              Little Alexandria is a warm, hand-drawn home for the books you want to read, the one on your
-              nightstand, and the ones you’ve loved. Shelve them, scribble in the margins, and watch a garden grow
-              from everything you finish.
+              {HOME.intro}
             </motion.p>
 
             <motion.div {...rise(0.28)} className="mt-9 flex flex-wrap items-center gap-3">
@@ -95,7 +96,7 @@ export function Landing({ user, error }: { user: User | null; error?: string }) 
             )}
             {!user && (
               <motion.p {...rise(0.36)} className="mt-5 text-sm text-ink-faint">
-                Free, private to you, and no newsletter. Your shelves are yours alone.
+                {HOME.promise}
               </motion.p>
             )}
           </div>
@@ -110,9 +111,10 @@ export function Landing({ user, error }: { user: User | null; error?: string }) 
               <GoalSun progress={0.62} size={112} />
             </div>
             <OvergrownBookcase />
-            <p className="absolute bottom-[-0.5rem] left-2 rotate-[-4deg] font-hand text-lg text-ink-faint">
-              ↑ yours, give or take a few hundred books
-            </p>
+            <div className="absolute -bottom-4 left-0 flex rotate-[-4deg] items-end gap-1 text-ink-faint">
+              <HandArrow delay={reduce ? 0 : 0.9} />
+              <p className="pb-1 font-hand text-base whitespace-nowrap sm:text-lg">{HOME.caption}</p>
+            </div>
           </motion.div>
         </section>
 
@@ -121,21 +123,10 @@ export function Landing({ user, error }: { user: User | null; error?: string }) 
             How it works
           </h2>
           <ol className="grid gap-12 md:grid-cols-3 md:gap-10">
+            <Chapter {...HOME.chapters[0]} art={<PotWithSprout />} />
+            <Chapter {...HOME.chapters[1]} art={<WateringCan />} />
             <Chapter
-              numeral="i."
-              title="Shelve"
-              art={<PotWithSprout />}
-              text="Search every book in the stacks and set it on a shelf in one click: Want to Read, Currently Reading, or Read. Drag books between shelves like you would at home."
-            />
-            <Chapter
-              numeral="ii."
-              title="Annotate"
-              art={<WateringCan />}
-              text="Each book opens into its own catalogue card. Give it stars, note the day you started and finished, and keep notes in the margin."
-            />
-            <Chapter
-              numeral="iii."
-              title="Grow"
+              {...HOME.chapters[2]}
               art={
                 <div className="flex h-full items-end justify-center gap-1">
                   {[CRAYON.rose, CRAYON.marigold, CRAYON.lilac, CRAYON.coral].map((color, i) => (
@@ -143,7 +134,6 @@ export function Landing({ user, error }: { user: User | null; error?: string }) 
                   ))}
                 </div>
               }
-              text="Every finished book plants a flower in your reading garden, coloured like its cover. Set a yearly goal and watch the sun come up."
             />
           </ol>
         </section>
@@ -151,24 +141,35 @@ export function Landing({ user, error }: { user: User | null; error?: string }) 
         <section className="border-t border-line py-20 text-center">
           <blockquote className="mx-auto max-w-2xl">
             <p className="font-display text-[clamp(1.6rem,3.6vw,2.4rem)] leading-tight font-light italic text-balance">
-              “If you have a garden and a library, you have everything you need.”
+              {HOME.quote.text}
             </p>
-            <footer className="mt-4 font-hand text-xl text-ink-soft">Marcus Tullius Cicero, who would have liked this place</footer>
+            <footer className="mt-4 font-hand text-xl text-ink-soft">{HOME.quote.cite}</footer>
           </blockquote>
         </section>
       </main>
 
-      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-line py-8 text-sm text-ink-faint">
-        <p>Little Alexandria · made by hand, with love for libraries</p>
-        <p>
-          Book data from{' '}
-          <a className="underline underline-offset-4 hover:text-ink" href="https://openlibrary.org" rel="noreferrer">
-            Open Library
-          </a>{' '}
-          and Google Books
-        </p>
-      </footer>
+      <SiteFooter />
     </div>
+  )
+}
+
+/** A crayon arrow that curls up from the caption and points into the bookcase. */
+function HandArrow({ delay }: { delay: number }) {
+  const draw = (start: number) =>
+    delay
+      ? {
+          initial: { pathLength: 0 },
+          animate: { pathLength: 1 },
+          transition: { duration: 0.55, ease: 'easeOut' as const, delay: delay + start },
+        }
+      : {}
+  return (
+    <svg viewBox="0 0 48 64" className="h-14 w-11 shrink-0" aria-hidden fill="none">
+      <g stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" filter="url(#la-wobble)">
+        <motion.path d="M12 60 C4 42 16 22 36 8" {...draw(0)} />
+        <motion.path d="M25.1 9.3 L36 8 L31 17.8" {...draw(0.45)} />
+      </g>
+    </svg>
   )
 }
 
