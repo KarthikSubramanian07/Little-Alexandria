@@ -6,6 +6,8 @@ test('a shared library is visible to strangers, without notes', async ({
   browser,
   isMobile,
 }) => {
+  // Two readers, a share, and a visit: the longest journey in the suite.
+  test.slow()
   await signIn(page)
   await shelveBook(page, 'circe', 'Circe', 'Read')
   await shelf(page, 'Read')
@@ -34,7 +36,9 @@ test('a shared library is visible to strangers, without notes', async ({
   await visit.goto(`/u/${handle}`)
   await expect(visit.getByRole('heading', { name: 'Guest Reader' })).toBeVisible()
   await expect(visit.getByRole('link', { name: /start your own library/i }).first()).toBeVisible()
-  await visit.getByRole('button', { name: 'Circe, Madeline Miller' }).click()
+  await shelf(visit, 'Read')
+    .getByRole('button', { name: /^Circe\b/ })
+    .click()
   await expect(visit.getByRole('dialog').getByText(/on guest’s read shelf/i)).toBeVisible()
   await expect(visit.getByText('my secret thoughts')).toHaveCount(0)
   await stranger.close()
