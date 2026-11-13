@@ -185,20 +185,20 @@ function ShelfRow({
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...settle, delay: index * 0.08 }}
     >
-      <header className="mb-3 flex items-baseline justify-between gap-4 px-1">
+      <header className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
         <div className="flex min-w-0 items-baseline gap-3">
           <h2 id={headingId} className="font-display text-2xl font-medium tracking-tight whitespace-nowrap sm:text-[1.7rem]">
             {SHELF_LABELS[shelf]}
           </h2>
           <span className="hidden truncate font-hand text-lg text-ink-faint sm:inline">{notes.hint}</span>
         </div>
-        <div className="flex shrink-0 items-baseline gap-3">
+        <div className="ml-auto flex shrink-0 items-baseline gap-3">
           {overflow && (
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
               aria-expanded={expanded}
-              className="rounded-full px-2.5 py-0.5 text-sm font-medium text-moss hover:bg-moss-soft"
+              className="rounded-full px-2.5 py-0.5 text-sm font-medium text-moss hover:bg-moss-soft pointer-coarse:py-2"
             >
               {expanded ? 'Fold the shelf' : 'See the whole shelf'}
             </button>

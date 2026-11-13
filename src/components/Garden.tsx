@@ -232,11 +232,11 @@ export function MonthStrip({ stats }: { stats: ReadingStats }) {
                 transition={{ type: 'spring', stiffness: 120, damping: 16, delay: 0.2 + month * 0.04 }}
               />
             </div>
-            <span className={clsx('h-3 font-mono text-[10px] leading-3 uppercase', month === thisMonth ? 'text-ink' : 'text-ink-faint')}>
+            <span className={clsx('h-3.5 font-mono text-[11px] leading-3.5 uppercase', month === thisMonth ? 'text-ink' : 'text-ink-faint')}>
               {MONTHS[month]!.slice(0, 1)}
               <span className="hidden sm:inline">{MONTHS[month]!.slice(1)}</span>
             </span>
-            <span className="h-3 font-mono text-[10px] leading-3 text-ink-soft tabular-nums">{count || ''}</span>
+            <span className="h-3.5 font-mono text-[11px] leading-3.5 text-ink-soft tabular-nums">{count || ''}</span>
           </li>
         ))}
       </ol>

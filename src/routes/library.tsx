@@ -84,7 +84,7 @@ function LibraryPage() {
                 value={filter}
                 onChange={(event) => setFilter(event.target.value)}
                 placeholder="Filter your shelves"
-                className="w-36 bg-transparent text-sm outline-none placeholder:text-ink-faint sm:w-44"
+                className="w-36 bg-transparent text-sm outline-none placeholder:text-ink-faint pointer-coarse:text-base sm:w-44"
               />
               {filter && (
                 <button type="button" onClick={() => setFilter('')} aria-label="Clear filter" className="text-ink-faint hover:text-ink">

@@ -68,11 +68,14 @@ export function SearchDialog({ open, onOpenChange, shelf, onShelfChange, initial
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by title, author, or ISBN"
               aria-label="Search for a book"
-              className="min-w-0 flex-1 bg-transparent font-display text-xl outline-none placeholder:text-ink-faint"
+              className="min-w-0 flex-1 bg-transparent font-display text-xl outline-none placeholder:text-ink-faint pointer-coarse:py-2"
               spellCheck={false}
             />
             {waiting && <Spinner />}
-            <Dialog.Close className="rounded-md px-2 py-1 font-mono text-xs text-ink-faint hover:text-ink">esc</Dialog.Close>
+            <Dialog.Close className="rounded-md px-2 py-1 font-mono text-xs text-ink-faint hover:text-ink pointer-coarse:px-3 pointer-coarse:py-2.5 pointer-coarse:font-sans pointer-coarse:text-sm">
+              <span className="pointer-coarse:hidden">esc</span>
+              <span className="hidden pointer-coarse:inline">Done</span>
+            </Dialog.Close>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto border-b border-line px-5 py-2.5 text-sm">
@@ -84,7 +87,7 @@ export function SearchDialog({ open, onOpenChange, shelf, onShelfChange, initial
                 onClick={() => onShelfChange(option)}
                 aria-pressed={option === shelf}
                 className={clsx(
-                  'relative shrink-0 rounded-full px-3 py-1 transition-colors',
+                  'relative shrink-0 rounded-full px-3 py-1 transition-colors pointer-coarse:py-2',
                   option === shelf ? 'text-on-moss' : 'text-ink-soft hover:text-ink',
                 )}
               >

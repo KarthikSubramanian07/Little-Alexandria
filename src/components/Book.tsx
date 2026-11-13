@@ -120,7 +120,7 @@ function ClothCover({
       <p
         className={clsx(
           'font-display leading-[1.05] font-semibold text-balance',
-          size === 'lg' ? 'text-3xl' : size === 'sm' ? 'text-[9px]' : 'text-sm',
+          size === 'lg' ? 'text-3xl max-sm:text-2xl' : size === 'sm' ? 'text-[9px]' : 'text-sm',
         )}
       >
         {book.title}

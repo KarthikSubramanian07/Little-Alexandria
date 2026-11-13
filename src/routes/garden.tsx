@@ -39,7 +39,7 @@ function GardenPage() {
           </h1>
         </div>
         <nav aria-label="Year" className="flex items-center gap-1 rounded-full border border-line p-1 font-mono text-sm">
-          <Link to="/garden" search={{ year: year - 1 }} className="rounded-full px-3 py-1 text-ink-soft hover:bg-paper-deep hover:text-ink" aria-label={`Show ${year - 1}`}>
+          <Link to="/garden" search={{ year: year - 1 }} className="rounded-full px-3 py-1 text-ink-soft hover:bg-paper-deep hover:text-ink pointer-coarse:py-2.5" aria-label={`Show ${year - 1}`}>
             ←
           </Link>
           <span className="px-2 tabular-nums">{year}</span>
@@ -47,7 +47,7 @@ function GardenPage() {
             to="/garden"
             search={{ year: year + 1 }}
             disabled={year >= thisYear}
-            className="rounded-full px-3 py-1 text-ink-soft hover:bg-paper-deep hover:text-ink aria-disabled:pointer-events-none aria-disabled:opacity-30"
+            className="rounded-full px-3 py-1 text-ink-soft hover:bg-paper-deep hover:text-ink pointer-coarse:py-2.5 aria-disabled:pointer-events-none aria-disabled:opacity-30"
             aria-label={`Show ${year + 1}`}
           >
             →
