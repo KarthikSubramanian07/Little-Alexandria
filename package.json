@@ -51,9 +51,11 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@cloudflare/workers-types": "^5.20261112.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.65.0",
+    "@seriousme/openapi-schema-validator": "^2.11.0",
     "@tailwindcss/vite": "^4.3.5",
     "@tanstack/router-plugin": "^1.169.0",
     "@testing-library/jest-dom": "^7.0.1",
@@ -64,6 +66,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "@vitest/coverage-v8": "4.1.12",
+    "ajv": "^8.20.0",
     "concurrently": "^10.0.7",
     "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
