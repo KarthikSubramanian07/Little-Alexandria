@@ -122,7 +122,7 @@ export function SiteFooter() {
               {ROUTES.has(item.href) ? (
                 <Link
                   to={item.href as '/about'}
-                  className="underline-offset-4 hover:text-ink hover:underline"
+                  className="inline-block underline-offset-4 hover:text-ink hover:underline pointer-coarse:px-1.5 pointer-coarse:py-2.5"
                 >
                   {item.label}
                 </Link>
@@ -130,7 +130,7 @@ export function SiteFooter() {
                 <a
                   href={item.href}
                   rel="noreferrer"
-                  className="underline-offset-4 hover:text-ink hover:underline"
+                  className="inline-block underline-offset-4 hover:text-ink hover:underline pointer-coarse:px-1.5 pointer-coarse:py-2.5"
                 >
                   {item.label}
                 </a>

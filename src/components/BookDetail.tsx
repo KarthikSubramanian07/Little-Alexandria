@@ -97,7 +97,14 @@ export function BookDetail({ entry, onClose, visitor, onSearch }: BookDetailProp
                 {/* The cover, which flew here from the shelf. */}
                 <div className="flex flex-col items-center gap-5 md:pt-2">
                   <motion.div layoutId={`cover-${entry.id}`} transition={settle} className="relative" style={{ perspective: 1200 }}>
-                    <Cover book={book} entryId={visitor ? undefined : entry.id} size="lg" tilt={-10} />
+                    <Cover
+                      book={book}
+                      entryId={visitor ? undefined : entry.id}
+                      size="lg"
+                      tilt={-10}
+                      // On phones a smaller cover leaves the stars and shelves on the first screen.
+                      className="max-sm:[--h:225px]! max-sm:[--t:14px]! max-sm:[--w:150px]!"
+                    />
                     <AnimatePresence>
                       {entry.shelf === 'read' && entry.finishedAt && <FinishedStamp label={finishedLabel(entry)!} />}
                     </AnimatePresence>
@@ -277,7 +284,7 @@ function DateField({
           min={min}
           max={max}
           onChange={(event) => onChange(event.target.value || null)}
-          className="w-full rounded-xl border border-line-control bg-card px-3 py-2 font-mono text-sm text-ink transition focus:border-moss"
+          className="w-full rounded-xl border border-line-control bg-card px-3 py-2 font-mono text-sm text-ink transition focus:border-moss pointer-coarse:py-2.5 pointer-coarse:text-base"
         />
         {value && (
           <button

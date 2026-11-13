@@ -16,11 +16,14 @@ export function LogoMark({ className = 'size-8' }: { className?: string }) {
   )
 }
 
-export function Wordmark() {
+/** `nameFrom` is the breakpoint where the name appears beside the mark. */
+export function Wordmark({ nameFrom = 'sm' }: { nameFrom?: 'sm' | 'lg' }) {
   return (
     <span className="flex items-center gap-2.5">
       <LogoMark />
-      <span className="hidden font-display text-[1.35rem] leading-none font-medium tracking-tight sm:inline">
+      <span
+        className={`hidden font-display text-[1.35rem] leading-none font-medium tracking-tight ${nameFrom === 'lg' ? 'lg:inline' : 'sm:inline'}`}
+      >
         Little <span className="italic">Alexandria</span>
       </span>
     </span>

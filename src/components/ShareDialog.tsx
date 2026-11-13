@@ -103,7 +103,7 @@ export function ShareDialog({ user, open, onOpenChange }: { user: User; open: bo
                   value={handle}
                   onChange={(event) => setHandle(event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                   maxLength={30}
-                  className="min-w-0 flex-1 bg-transparent py-2 font-mono text-sm outline-none"
+                  className="min-w-0 flex-1 bg-transparent py-2 font-mono text-sm outline-none pointer-coarse:py-2.5 pointer-coarse:text-base"
                   spellCheck={false}
                   autoCapitalize="off"
                 />

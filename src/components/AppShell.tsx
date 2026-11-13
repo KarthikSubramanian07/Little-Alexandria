@@ -71,8 +71,13 @@ export function AppShell({
       </a>
       <header className="sticky top-0 z-30 bg-[color-mix(in_oklab,var(--paper)_86%,transparent)] backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-6 sm:px-8 sm:py-4">
-          <Link to="/library" className="shrink-0" aria-label="Little Alexandria, your shelves">
-            <Wordmark />
+          <Link
+            to="/library"
+            className="flex shrink-0 items-center rounded-lg pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+            aria-label="Little Alexandria, your shelves"
+          >
+            {/* Tablets need the room for the nav and search, so the name waits for laptops. */}
+            <Wordmark nameFrom="lg" />
           </Link>
           <nav
             aria-label="Primary"
@@ -85,7 +90,7 @@ export function AppShell({
                   key={item.to}
                   to={item.to}
                   className={clsx(
-                    'relative rounded-full px-4 py-1 text-sm font-medium transition-colors',
+                    'relative rounded-full px-4 py-1 text-sm font-medium whitespace-nowrap transition-colors pointer-coarse:py-2.5',
                     active ? 'text-on-moss' : 'text-ink-soft hover:text-ink',
                   )}
                   aria-current={active ? 'page' : undefined}
@@ -108,7 +113,7 @@ export function AppShell({
                 type="button"
                 onClick={onSearch}
                 aria-keyshortcuts="Meta+K Control+K"
-                className="group flex items-center gap-2 rounded-full border border-line-strong bg-card py-2 pr-2 pl-2 text-sm text-ink-soft transition hover:border-moss hover:text-ink active:scale-[0.98] sm:py-1.5 sm:pl-4"
+                className="group flex shrink-0 items-center gap-2 rounded-full border border-line-strong bg-card py-2 pr-2 pl-2 text-sm whitespace-nowrap text-ink-soft transition hover:border-moss hover:text-ink active:scale-[0.98] pointer-coarse:p-3 lg:py-1.5 lg:pl-4"
               >
                 <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
                   <circle
@@ -126,10 +131,10 @@ export function AppShell({
                     strokeLinecap="round"
                   />
                 </svg>
-                <span className="sr-only sm:not-sr-only">Find a book</span>
+                <span className="sr-only lg:not-sr-only">Find a book</span>
                 <kbd
                   aria-hidden
-                  className="hidden rounded-md border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink-faint md:inline"
+                  className="hidden rounded-md border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink-faint lg:inline pointer-coarse:lg:hidden"
                 >
                   ⌘K
                 </kbd>
@@ -139,7 +144,7 @@ export function AppShell({
               type="button"
               onClick={() => setSharing(true)}
               aria-label="Share your shelves"
-              className="hidden size-9 place-items-center rounded-full text-ink-soft transition hover:bg-paper-deep hover:text-ink active:scale-90 sm:grid"
+              className="hidden size-9 shrink-0 place-items-center rounded-full text-ink-soft transition hover:bg-paper-deep hover:text-ink active:scale-90 pointer-coarse:size-11 sm:grid"
             >
               <svg viewBox="0 0 20 20" className="size-[18px]" aria-hidden>
                 <g
@@ -223,7 +228,7 @@ export function ThemeToggle() {
       onClick={() => setChoice(next)}
       title={`${THEME_LABEL[choice]}. Switch to ${THEME_LABEL[next].toLowerCase()}`}
       aria-label={`Theme: ${THEME_LABEL[choice]}. Switch to ${THEME_LABEL[next]}`}
-      className="grid size-9 place-items-center rounded-full text-ink-soft transition hover:bg-paper-deep hover:text-ink active:scale-90"
+      className="grid size-9 shrink-0 place-items-center rounded-full text-ink-soft transition hover:bg-paper-deep hover:text-ink active:scale-90 pointer-coarse:size-11"
     >
       <motion.svg
         key={resolved + choice}
@@ -272,7 +277,7 @@ function UserMenu({ user, onShare }: { user: User; onShare: () => void }) {
       <DropdownMenu.Root modal={false}>
         <DropdownMenu.Trigger
           aria-label={`Signed in as ${user.name}`}
-          className="grid size-9 place-items-center overflow-hidden rounded-full border border-line-strong bg-moss-soft font-display text-sm font-semibold text-moss transition hover:border-moss active:scale-95"
+          className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-full border border-line-strong pointer-coarse:size-11 bg-moss-soft font-display text-sm font-semibold text-moss transition hover:border-moss active:scale-95"
         >
           {user.avatarUrl ? (
             <img
