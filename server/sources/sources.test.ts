@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { normalizeGenres } from './genres'
 import { cleanThumbnail, largeCover } from './google'
 import { dedupe } from './index'
+import { coverIdFor } from './openlibrary'
 import { cleanOpenLibraryDescription, isbn13From, plainText, yearFrom } from './text'
 
 describe('normalizeGenres', () => {
@@ -67,5 +68,17 @@ describe('dedupe', () => {
     ])
     expect(merged).toHaveLength(2)
     expect(merged[0]!.thumbnailUrl).toBe('cover.jpg')
+  })
+})
+
+describe('coverIdFor', () => {
+  const doc = { key: '/works/OL1W', title: 'X', cover_i: 1 }
+  it('prefers the English edition cover', () => {
+    expect(coverIdFor({ ...doc, editions: { docs: [{ cover_i: 2, language: ['eng'] }] } })).toBe(2)
+  })
+  it('falls back to the work cover for other languages or no edition', () => {
+    expect(coverIdFor({ ...doc, editions: { docs: [{ cover_i: 2, language: ['spa'] }] } })).toBe(1)
+    expect(coverIdFor(doc)).toBe(1)
+    expect(coverIdFor({ key: '/works/OL1W', title: 'X' })).toBeNull()
   })
 })

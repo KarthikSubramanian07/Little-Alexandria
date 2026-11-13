@@ -3,7 +3,8 @@
 // reader can never name another reader's rows.
 import { datesForShelf } from '../shared/shelf-rules'
 import type { Book, LibraryEntry, Shelf, User } from '../shared/types'
-import { LibraryError, applyPatch, frontOf, type EntryPatch } from './library'
+import { frontOf } from '../shared/positions'
+import { LibraryError, applyPatch, type EntryPatch } from './library'
 
 export const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30
 

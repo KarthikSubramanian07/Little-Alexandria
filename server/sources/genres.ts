@@ -16,7 +16,7 @@ const RULES: [genre: string, pattern: RegExp][] = [
   ['Classics', /classic/i],
   ['Biography', /biograph|autobiograph/i],
   ['Memoir', /memoir/i],
-  ['History', /^history|history[,\s]|world war|civilization|ancient/i],
+  ['History', /^(?!.*criticism)(world )?history\b|military history|world war|civilization|ancient (rome|greece|egypt|history)/i],
   ['Philosophy', /philosoph|ethics|metaphysics|stoic/i],
   ['Psychology', /psycholog|mental health|behavior/i],
   ['Science', /science|physics|biology|chemistry|astronomy|mathematics|evolution/i],

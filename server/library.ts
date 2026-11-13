@@ -1,6 +1,5 @@
 // Pure rules about shelves, ordering, and stats. No I/O lives here, so every
 // rule is trivially testable; server/store.ts does the SQL.
-import { generateKeyBetween } from 'fractional-indexing'
 import type { Book, LibraryEntry, ReadingStats, Shelf } from '../shared/types'
 import type { BookMetadata } from './sources/types'
 
@@ -41,11 +40,7 @@ export function bookFromMetadata(metadata: BookMetadata): Book {
   }
 }
 
-/** Position keys compare bytewise (SQLite BINARY collation), never by locale. */
-export const comparePositions = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
-
-/** A key that sorts before `first`: new and moved books land at the front of a shelf. */
-export const frontOf = (first: string | null) => generateKeyBetween(null, first)
+export { comparePositions, frontOf } from '../shared/positions'
 
 export class LibraryError extends Error {
   constructor(
