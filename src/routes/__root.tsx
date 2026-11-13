@@ -37,6 +37,7 @@ function Root() {
       <Toaster
         theme={resolved}
         position="bottom-center"
+        mobileOffset={{ bottom: 96 }}
         toastOptions={{
           classNames: {
             toast: '!rounded-2xl !border !border-line !bg-card !text-ink !font-sans !shadow-[0_18px_40px_-16px_rgb(var(--shadow-rgb)/0.5)]',

@@ -2,10 +2,35 @@
 @import '@fontsource-variable/fraunces/full.css';
 @import '@fontsource-variable/fraunces/full-italic.css';
 @import '@fontsource-variable/hanken-grotesk';
-@import '@fontsource/gaegu/400.css';
-@import '@fontsource/gaegu/700.css';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
+
+/* The handwriting face. Gaegu's curly quotes are drawn far too wide, so those
+   two characters come from Hanken Grotesk instead (unicode-range picks per glyph). */
+@font-face {
+  font-family: 'LA Hand';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/gaegu/files/gaegu-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-2017, U+201A-FFFF;
+}
+@font-face {
+  font-family: 'LA Hand';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/gaegu/files/gaegu-latin-700-normal.woff2') format('woff2');
+  unicode-range: U+0000-2017, U+201A-FFFF;
+}
+@font-face {
+  font-family: 'LA Hand';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+2018-2019;
+}
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
@@ -114,8 +139,7 @@
 
   --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
   --font-sans: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
-  /* Gaegu has no curly apostrophe; Hanken's slim one sits better than a system fallback. */
-  --font-hand: 'Gaegu', 'Hanken Grotesk Variable', cursive;
+  --font-hand: 'LA Hand', 'Segoe Print', cursive;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -123,6 +147,8 @@
 
 /* ── Base ─────────────────────────────────────────────────────────────── */
 html {
+  /* Nothing may scroll the page sideways, whatever a wide child tries. */
+  overflow-x: clip;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-sans);
@@ -137,14 +163,14 @@ body {
   background:
     radial-gradient(60rem 40rem at var(--lamp-x, 70%) var(--lamp-y, -10%), var(--lamp), transparent 70%),
     var(--paper);
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Paper grain over everything. Pointer-events none, so it never gets in the way. */
 body::after {
   content: '';
   position: fixed;
-  inset: -50%;
+  inset: 0;
   z-index: 60;
   pointer-events: none;
   opacity: var(--grain-opacity);
