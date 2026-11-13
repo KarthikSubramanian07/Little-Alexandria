@@ -3,16 +3,18 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { clsx } from 'clsx'
 import { motion } from 'motion/react'
 import { DropdownMenu } from 'radix-ui'
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { User } from '../../shared/types'
 import { snappy } from '../lib/motion'
 import { useSignOut } from '../lib/queries'
 import { useTheme, type ThemeChoice } from '../lib/theme'
+import { ShareDialog } from './ShareDialog'
 import { Wordmark } from './Wordmark'
 
 const NAV = [
   { to: '/library', label: 'Shelves' },
   { to: '/garden', label: 'Garden' },
+  { to: '/discover', label: 'Discover' },
 ] as const
 
 export function AppShell({ user, onSearch, children }: { user: User; onSearch?: () => void; children: ReactNode }) {
@@ -73,6 +75,7 @@ export function AppShell({ user, onSearch, children }: { user: User; onSearch?: 
               <kbd className="hidden rounded-md border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink-faint md:inline">⌘K</kbd>
             </button>
           )}
+          <ShareButton user={user} />
           <ThemeToggle />
           <UserMenu user={user} />
         </div>
@@ -154,5 +157,27 @@ function UserMenu({ user }: { user: User }) {
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
+  )
+}
+
+function ShareButton({ user }: { user: User }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Share your shelves"
+        className="grid size-9 place-items-center rounded-full text-ink-soft transition hover:bg-paper-deep hover:text-ink active:scale-90"
+      >
+        <svg viewBox="0 0 20 20" className="size-[18px]" aria-hidden>
+          <g fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 2.5v10M6.5 6 10 2.5 13.5 6" />
+            <path d="M5 9.5H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 17.5h12a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 16 9.5h-1" />
+          </g>
+        </svg>
+      </button>
+      {open && <ShareDialog user={user} open={open} onOpenChange={setOpen} />}
+    </>
   )
 }
