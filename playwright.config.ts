@@ -6,6 +6,8 @@ const PORT = 8790
 // dev` with a throwaway local D1 and the offline book catalogue.
 export default defineConfig({
   testDir: 'e2e',
+  // Whole journeys (shelve, annotate, share, visit as a stranger) take a while on phone emulation.
+  timeout: 60_000,
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
