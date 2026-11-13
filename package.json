@@ -26,10 +26,12 @@
     "db:migrate:remote": "wrangler d1 migrations apply little-alexandria --remote"
   },
   "dependencies": {
+    "@dnd-kit/abstract": "0.5.3",
     "@dnd-kit/helpers": "^0.5.3",
     "@dnd-kit/react": "^0.5.3",
     "@fontsource-variable/fraunces": "^5.3.0",
     "@fontsource-variable/hanken-grotesk": "^5.3.0",
+    "@fontsource/gaegu": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
@@ -44,6 +46,7 @@
     "radix-ui": "^1.8.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "sonner": "^2.0.8",
     "zod": "^4.6.7"
   },
   "devDependencies": {
