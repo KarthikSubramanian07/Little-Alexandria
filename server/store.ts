@@ -233,6 +233,11 @@ export function createStore(db: D1Database) {
       throw new Error('Could not find a free handle')
     },
 
+    /** Delete a reader and, by cascade, their sessions, shelves, and goals. Catalogue rows stay. */
+    async deleteUser(userId: string) {
+      await db.prepare('DELETE FROM users WHERE id = ?').bind(userId).run()
+    },
+
     async updateProfile(userId: string, changes: { handle?: string; isPublic?: boolean }) {
       try {
         if (changes.handle !== undefined) {

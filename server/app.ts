@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { deleteCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
 import { z } from 'zod'
@@ -11,11 +12,12 @@ import {
   updateEntrySchema,
   yearSchema,
 } from '../shared/schemas'
+import { libraryToCsv } from '../shared/export'
 import type { ImportOutcome } from '../shared/types'
 import { auth } from './auth'
 import type { AppEnv } from './env'
 import { LibraryError, bookFromMetadata, bookId, computeStats, isAllowedCoverHost } from './library'
-import { readSession } from './session'
+import { SESSION_COOKIE, readSession } from './session'
 import { discoverFor, relatedFor } from './related'
 import { lookupBook, searchBooks } from './sources'
 import { matchOpenLibrary } from './sources/openlibrary'
@@ -61,6 +63,8 @@ api.get('/cover', async (c) => {
   if (!isAllowedCoverHost(url)) {
     return c.json({ error: 'Cover host not allowed' }, 400)
   }
+  // Offline mode stays offline: books fall back to their typeset cloth covers.
+  if (c.env.BOOK_SOURCE === 'fixture') return c.body(null, 404)
   const upstream = await fetch(url.toString(), {
     cf: { cacheTtl: 60 * 60 * 24 * 30, cacheEverything: true },
   })
@@ -164,6 +168,24 @@ reader.put('/goals/:year', async (c) => {
   return c.json({ year, target })
 })
 
+/** Everything on your shelves, as a CSV Goodreads (or anything else) can read. */
+reader.get('/export', async (c) => {
+  const entries = await storeOf(c).listEntries(c.get('userId'))
+  const date = new Date().toISOString().slice(0, 10)
+  return c.body(libraryToCsv(entries), 200, {
+    'Content-Type': 'text/csv; charset=utf-8',
+    'Content-Disposition': `attachment; filename="little-alexandria-${date}.csv"`,
+    'Cache-Control': 'no-store',
+  })
+})
+
+/** Close the account for good: the reader, their sessions, shelves, notes, and goals. */
+reader.delete('/me', async (c) => {
+  await storeOf(c).deleteUser(c.get('userId'))
+  deleteCookie(c, SESSION_COOKIE, { path: '/' })
+  return c.body(null, 204)
+})
+
 reader.patch('/me', async (c) => {
   const changes = await body(c, profileSchema)
   if (changes.handle && RESERVED_HANDLES.has(changes.handle)) {
@@ -227,6 +249,10 @@ reader.post('/import', async (c) => {
 
 /** More like this: the author's other books, similar books, and adaptations. */
 reader.get('/library/:id/related', async (c) => {
+  // The offline catalogue (tests, local dev) never reaches out to live services.
+  if (c.env.BOOK_SOURCE === 'fixture') {
+    return c.json({ description: null, byAuthor: [], similar: [], adaptations: [] })
+  }
   const store = storeOf(c)
   const userId = c.get('userId')
   const [entry, entries] = await Promise.all([
@@ -242,6 +268,7 @@ reader.get('/library/:id/related', async (c) => {
 })
 
 reader.get('/discover', async (c) => {
+  if (c.env.BOOK_SOURCE === 'fixture') return c.json({ sections: [] })
   const entries = await storeOf(c).listEntries(c.get('userId'))
   return c.json({ sections: await discoverFor(entries) }, 200, {
     'Cache-Control': 'private, max-age=900',

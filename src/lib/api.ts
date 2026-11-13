@@ -98,4 +98,5 @@ export const api = {
     request<{ outcomes: ImportOutcome[] }>('/import', json('POST', { rows, today })),
   related: (entryId: string) => request<RelatedResponse>(`/library/${entryId}/related`),
   discover: () => request<{ sections: DiscoverSection[] }>('/discover'),
+  deleteAccount: () => request<void>('/me', json('DELETE')),
 }

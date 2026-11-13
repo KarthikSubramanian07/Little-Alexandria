@@ -396,6 +396,46 @@ describe('import', () => {
   })
 })
 
+describe('your data', () => {
+  it('exports the library as a Goodreads-style CSV that imports back', async () => {
+    const call = await signedIn()
+    const { entry } = await (await add(call, 'OL893414W', 'read')).json()
+    await call(`/api/library/${entry.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ rating: 5, notes: 'Spice, "melange", and sand' }),
+    })
+    const response = await call('/api/export')
+    expect(response.headers.get('content-type')).toContain('text/csv')
+    expect(response.headers.get('content-disposition')).toMatch(
+      /attachment; filename="little-alexandria-/,
+    )
+    const csv = await response.text()
+    const { parseReadingList } = await import('../shared/import')
+    const { format, rows } = parseReadingList(csv)
+    expect(format).toBe('goodreads')
+    expect(rows[0]).toMatchObject({
+      title: 'Dune',
+      shelf: 'read',
+      rating: 5,
+      notes: 'Spice, "melange", and sand',
+      finishedAt: '2026-11-13',
+    })
+  })
+
+  it('deletes the account and everything on its shelves', async () => {
+    const call = await signedIn()
+    await add(call, 'OL893414W')
+    expect((await call('/api/me', { method: 'DELETE' })).status).toBe(204)
+    expect(await (await call('/api/auth/me')).json()).toEqual({ user: null })
+    for (const table of ['users', 'sessions', 'user_books']) {
+      const { results } = await database.db
+        .prepare(`SELECT COUNT(*) AS n FROM ${table}`)
+        .all<{ n: number }>()
+      expect(results[0]!.n).toBe(0)
+    }
+  })
+})
+
 describe('cover proxy', () => {
   it('refuses hosts outside the allowlist', async () => {
     const response = await reader()(
