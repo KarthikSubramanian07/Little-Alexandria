@@ -16,6 +16,7 @@ import { libraryToCsv } from '../shared/export'
 import type { ImportOutcome } from '../shared/types'
 import { auth } from './auth'
 import type { AppEnv } from './env'
+import { DEFAULT_POLICY, RateLimiter, rateLimit } from './ratelimit'
 import { LibraryError, bookFromMetadata, bookId, computeStats, isAllowedCoverHost } from './library'
 import { SESSION_COOKIE, readSession } from './session'
 import { discoverFor, relatedFor } from './related'
@@ -37,6 +38,13 @@ async function body<T extends z.ZodType>(c: { req: { json(): Promise<unknown> } 
 }
 
 const api = new Hono<AppEnv>()
+
+// Covers are cached for a year, so they carry no rate-limit state; everything else counts.
+const limiter = new RateLimiter(DEFAULT_POLICY)
+api.use('*', async (c, next) => {
+  if (c.req.path === '/api/cover') return next()
+  return rateLimit(limiter)(c, next)
+})
 
 // Cookies are SameSite=Lax; on top of that, writes must come from our own origin.
 api.use('*', async (c, next) => {
