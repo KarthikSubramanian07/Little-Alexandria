@@ -80,7 +80,8 @@ function SharedLibraryPage() {
               </div>
             </div>
             <p className="font-hand text-xl text-ink-soft">
-              {shared.data.entries.length.toLocaleString()} books · {shared.data.stats.booksRead} finished in {year}
+              {shared.data.entries.length.toLocaleString()} {shared.data.entries.length === 1 ? 'book' : 'books'} ·{' '}
+              {shared.data.stats.booksRead} finished in {year}
             </p>
           </header>
 

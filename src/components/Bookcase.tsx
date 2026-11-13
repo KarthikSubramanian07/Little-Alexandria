@@ -1,5 +1,6 @@
 import { CollisionPriority } from '@dnd-kit/abstract'
-import { DragDropProvider, useDroppable } from '@dnd-kit/react'
+import { PointerActivationConstraints } from '@dnd-kit/dom'
+import { DragDropProvider, KeyboardSensor, PointerSensor, useDroppable } from '@dnd-kit/react'
 import { isSortable, useSortable } from '@dnd-kit/react/sortable'
 import { clsx } from 'clsx'
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'motion/react'
@@ -29,6 +30,32 @@ const SHELF_NOTES: Record<Shelf, { empty: string; hint: string; emptyPublic: str
     hint: 'well loved',
   },
 }
+
+/**
+ * The book is both the button that opens it and the handle that drags it, so
+ * Enter opens it and Space picks it up (arrows move it, Space or Enter drops it).
+ */
+const SENSORS = [
+  // A click opens the book; a drag needs a deliberate nudge (mouse) or a
+  // press-and-hold (touch), so scrolling a shelf on a phone never grabs a book.
+  PointerSensor.configure({
+    activationConstraints: (event) =>
+      event.pointerType === 'touch'
+        ? [new PointerActivationConstraints.Delay({ value: 250, tolerance: 6 })]
+        : [new PointerActivationConstraints.Distance({ value: 6 })],
+  }),
+  KeyboardSensor.configure({
+    keyboardCodes: {
+      start: ['Space'],
+      cancel: ['Escape'],
+      end: ['Space', 'Enter', 'Tab'],
+      up: ['ArrowUp'],
+      down: ['ArrowDown'],
+      left: ['ArrowLeft'],
+      right: ['ArrowRight'],
+    },
+  }),
+]
 
 /** A single row shows this many books before the "see the whole shelf" bookend. */
 const ROW_LIMIT = 40
@@ -78,6 +105,7 @@ export function Bookcase({ entries, openId, onOpen, onFindBook, readOnly = false
   return (
     <BookcaseContext value={{ dragging, sortable, readOnly, openId, onOpen, mountedAt }}>
       <DragDropProvider
+        sensors={SENSORS}
         onDragStart={() => setDragging(true)}
         onDragEnd={(event) => {
           setDragging(false)
@@ -249,7 +277,7 @@ function ShelfRow({
 function SortableBook({ entry, index, shelf }: { entry: LibraryEntry; index: number; shelf: Shelf }) {
   const reduce = useReducedMotion()
   const { dragging: anyDragging, sortable, readOnly, openId, onOpen, mountedAt } = use(BookcaseContext)
-  const { ref, isDragging } = useSortable({
+  const { ref, handleRef, isDragging } = useSortable({
     id: entry.id,
     index,
     group: shelf,
@@ -261,7 +289,9 @@ function SortableBook({ entry, index, shelf }: { entry: LibraryEntry; index: num
 
   return (
     <motion.li
-      ref={ref}
+      // With dragging off (shared pages, filtering) nothing is attached, so no
+      // book is announced as a disabled draggable.
+      ref={sortable ? ref : undefined}
       layout={anyDragging || reduce ? false : 'position'}
       className="group/book relative shrink-0 list-none [touch-action:manipulation]"
       initial={isNew && !reduce ? { opacity: 0, y: -60, rotate: -8, scale: 0.9 } : { opacity: 0, y: 10 }}
@@ -278,6 +308,7 @@ function SortableBook({ entry, index, shelf }: { entry: LibraryEntry; index: num
         book={entry.book}
         entryId={readOnly ? undefined : entry.id}
         layoutKey={entry.id}
+        handleRef={sortable ? handleRef : undefined}
         hidden={openId === entry.id}
         dragging={isDragging}
         onOpen={() => onOpen(entry)}
