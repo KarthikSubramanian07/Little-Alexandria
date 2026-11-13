@@ -114,7 +114,8 @@
 
   --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
   --font-sans: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-hand: 'Gaegu', 'Comic Neue', 'Segoe Print', cursive;
+  /* Gaegu has no curly apostrophe; Hanken's slim one sits better than a system fallback. */
+  --font-hand: 'Gaegu', 'Hanken Grotesk Variable', cursive;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);

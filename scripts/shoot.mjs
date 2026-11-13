@@ -18,7 +18,7 @@ for (const size of sizes) {
     page.on('pageerror', (error) => errors.push(error.message))
     page.on('console', (message) => message.type() === 'error' && errors.push(message.text()))
     await page.goto(`${base}/`)
-    await page.request.post(`${base}/api/auth/guest`, { headers: { Origin: base } })
+    if (!process.env.NOLOGIN) await page.request.post(`${base}/api/auth/guest`, { headers: { Origin: base } })
     for (const path of pages) {
       await page.goto(`${base}${path}`, { waitUntil: 'networkidle' })
       await page.waitForTimeout(Number(process.env.WAIT ?? 2600))
