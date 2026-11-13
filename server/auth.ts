@@ -18,9 +18,18 @@ const googleFor = (env: AppEnv['Bindings'], origin: string) =>
       )
     : null
 
-/** Only same-site paths, so the sign-in flow can't be turned into an open redirect. */
-const safeNext = (value: string | undefined) =>
-  value && value.startsWith('/') && !value.startsWith('//') ? value : '/library'
+/**
+ * Only same-site paths, so the sign-in flow can't become an open redirect.
+ * Browsers read "/\\evil.com" like "//evil.com", so backslashes are refused too.
+ */
+export const safeNext = (value: string | undefined) =>
+  value &&
+  value.startsWith('/') &&
+  !value.startsWith('//') &&
+  !value.includes('\\') &&
+  ![...value].some((char) => char.charCodeAt(0) < 0x20)
+    ? value
+    : '/library'
 
 interface GoogleClaims {
   sub: string

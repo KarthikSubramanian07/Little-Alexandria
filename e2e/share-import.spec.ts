@@ -62,13 +62,11 @@ test('importing a reading list fills the shelves', async ({ page }) => {
     'Circe,',
     'A Book Nobody Wrote,Nobody',
   ].join('\n')
-  await dialog
-    .locator('input[type=file]')
-    .setInputFiles({
-      name: 'Books List - Fiction.csv',
-      mimeType: 'text/csv',
-      buffer: Buffer.from(csv),
-    })
+  await dialog.locator('input[type=file]').setInputFiles({
+    name: 'Books List - Fiction.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from(csv),
+  })
   await expect(dialog.getByText('4 books, ready to shelve')).toBeVisible()
   await dialog.getByRole('button', { name: /shelve 4 books/i }).click()
   await expect(dialog.getByText('Every book has found a shelf.')).toBeVisible({ timeout: 30_000 })
@@ -83,4 +81,21 @@ test('importing a reading list fills the shelves', async ({ page }) => {
     .getByRole('button', { name: /^Open Dune/ })
     .click()
   await expect(page.getByRole('dialog').getByText('sometime in 2025')).toBeVisible()
+})
+
+test('a reader can download their library and close their account', async ({ page }) => {
+  await signIn(page)
+  await shelveBook(page, 'dune', 'Dune')
+  await page.getByRole('button', { name: /signed in as/i }).click()
+  const download = page.waitForEvent('download')
+  await page.getByRole('menuitem', { name: /download my library/i }).click()
+  expect((await download).suggestedFilename()).toMatch(/^little-alexandria-\d{4}-\d{2}-\d{2}\.csv$/)
+
+  await page.getByRole('button', { name: /signed in as/i }).click()
+  await page.getByRole('menuitem', { name: /delete my account/i }).click()
+  await page.getByRole('button', { name: 'Delete everything' }).click()
+  await expect(page).toHaveURL(/\/$/)
+  expect(
+    await page.evaluate(async () => (await (await fetch('/api/auth/me')).json()).user),
+  ).toBeNull()
 })

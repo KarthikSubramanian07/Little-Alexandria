@@ -2,7 +2,7 @@
   "name": "little-alexandria",
   "version": "0.1.0",
   "private": true,
-  "description": "A warm, tactile personal bookshelf. Every great reader deserves a great library.",
+  "description": "A warm, hand-drawn personal bookshelf: shelve books, keep notes, and grow a reading garden. Cloudflare Pages + D1.",
   "type": "module",
   "license": "MIT",
   "author": "Karthik Subramanian",
@@ -21,7 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "deploy": "pnpm build && pnpm db:migrate:remote && wrangler pages deploy",
+    "deploy": "pnpm build && pnpm db:migrate:remote && wrangler pages deploy dist --project-name little-alexandria --branch main",
     "db:migrate:local": "wrangler d1 migrations apply little-alexandria --local",
     "db:migrate:remote": "wrangler d1 migrations apply little-alexandria --remote"
   },
@@ -77,5 +77,20 @@
     "vite": "8.3.8",
     "vitest": "4.1.12",
     "wrangler": "4.161.0"
+  },
+  "keywords": [
+    "bookshelf",
+    "reading-tracker",
+    "goodreads-alternative",
+    "cloudflare-pages",
+    "d1",
+    "react",
+    "hono",
+    "motion"
+  ],
+  "homepage": "https://little-alexandria.pages.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KarthikSubramanian07/Little-Alexandria"
   }
 }

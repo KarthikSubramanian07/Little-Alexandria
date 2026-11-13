@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .arch { fill: #3e5a3a } .room { fill: #f3ecdd } .ground { stroke: #2a1e16 }
+    @media (prefers-color-scheme: dark) { .arch { fill: #9dbb93 } .room { fill: #16110d } .ground { stroke: #f0e5d0 } }
+  </style>
+  <path class="arch" d="M6 28V13a10 10 0 0 1 20 0v15z"/>
+  <path class="room" d="M10 28V14a6 6 0 0 1 12 0v14"/>
+  <path d="M16 27c-.4-4 .4-6 0-9" fill="none" stroke="#4f7a45" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M16 21q-4-3-5 0 2.5 2.5 5 0M16 19.5q3.6-3.6 5-.6-2.4 2.6-5 .6" fill="#6f9a5b"/>
+  <path class="ground" d="M4 28h24" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
