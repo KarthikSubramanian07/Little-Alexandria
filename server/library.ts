@@ -75,6 +75,8 @@ export function applyPatch(
   ) as EntryPatch
   const next: LibraryEntry = { ...entry, ...defined, updatedAt: now }
   if (patch.notes !== undefined) next.notes = patch.notes?.trim() ? patch.notes : null
+  // A reader who sets a finish date by hand knows the day, not just the year.
+  if (patch.finishedAt !== undefined) next.finishedApprox = false
   if (next.startedAt && next.finishedAt && next.finishedAt < next.startedAt) {
     throw new LibraryError('A book can’t be finished before it was started', 400)
   }
@@ -92,7 +94,10 @@ export function computeStats(
     (entry) => entry.shelf === 'read' && entry.finishedAt?.startsWith(prefix),
   )
   const byMonth = Array.from({ length: 12 }, () => 0)
-  for (const entry of finishedThisYear) byMonth[Number(entry.finishedAt!.slice(5, 7)) - 1]!++
+  // Books known only by year count toward the total but not toward any one month.
+  for (const entry of finishedThisYear) {
+    if (!entry.finishedApprox) byMonth[Number(entry.finishedAt!.slice(5, 7)) - 1]!++
+  }
 
   // Favourite genres: everything you've read, with books you loved counting double.
   const genreWeights = new Map<string, number>()

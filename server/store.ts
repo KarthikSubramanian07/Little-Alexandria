@@ -1,9 +1,9 @@
 // The whole storage layer: every SQL statement in the app lives here.
 // Every library query is scoped by the user id the session resolved, so one
 // reader can never name another reader's rows.
-import { datesForShelf } from '../shared/shelf-rules'
-import type { Book, LibraryEntry, Shelf, User } from '../shared/types'
 import { frontOf } from '../shared/positions'
+import { datesForShelf } from '../shared/shelf-rules'
+import type { Book, LibraryEntry, PublicProfile, Shelf, User } from '../shared/types'
 import { LibraryError, applyPatch, type EntryPatch } from './library'
 
 export const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30
@@ -16,6 +16,7 @@ interface EntryRow {
   notes: string | null
   started_at: string | null
   finished_at: string | null
+  finished_approx: number
   created_at: number
   updated_at: number
   book_id: string
@@ -33,12 +34,23 @@ interface EntryRow {
   spine_color: string | null
 }
 
+interface UserRow {
+  id: string
+  name: string
+  email: string | null
+  avatar_url: string | null
+  handle: string | null
+  is_public: number
+}
+
 const ENTRY_SELECT = `
   SELECT ub.id, ub.shelf, ub.position, ub.rating, ub.notes, ub.started_at, ub.finished_at,
-         ub.created_at, ub.updated_at,
+         ub.finished_approx, ub.created_at, ub.updated_at,
          b.id AS book_id, b.source, b.source_id, b.title, b.subtitle, b.authors, b.published_year,
          b.page_count, b.description, b.genres, b.cover_url, b.isbn13, b.spine_color
   FROM user_books ub JOIN books b ON b.id = ub.book_id`
+
+const USER_SELECT = 'SELECT id, name, email, avatar_url, handle, is_public FROM users'
 
 const toEntry = (row: EntryRow): LibraryEntry => ({
   id: row.id,
@@ -48,6 +60,7 @@ const toEntry = (row: EntryRow): LibraryEntry => ({
   notes: row.notes,
   startedAt: row.started_at,
   finishedAt: row.finished_at,
+  finishedApprox: row.finished_approx === 1,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   book: {
@@ -67,8 +80,61 @@ const toEntry = (row: EntryRow): LibraryEntry => ({
   },
 })
 
+const toUser = (row: UserRow): User => ({
+  id: row.id,
+  name: row.name,
+  email: row.email,
+  avatarUrl: row.avatar_url,
+  handle: row.handle ?? '',
+  isPublic: row.is_public === 1,
+})
+
 const isConstraint = (error: unknown, kind: 'UNIQUE' | 'CHECK') =>
   error instanceof Error && error.message.includes(`${kind} constraint failed`)
+
+/** Addresses that would collide with the app's own pages. */
+export const RESERVED_HANDLES = new Set([
+  'api',
+  'app',
+  'admin',
+  'about',
+  'garden',
+  'library',
+  'login',
+  'logout',
+  'settings',
+  'help',
+  'u',
+  'me',
+  'discover',
+  'import',
+  'share',
+  'support',
+  'little-alexandria',
+  'alexandria',
+])
+
+/** "Karthik Subramanian" -> "karthik-subramanian". Never too short, never reserved. */
+export function slugifyHandle(name: string): string {
+  const slug = name
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 24)
+    .replace(/-+$/g, '')
+  if (slug.length < 3 || RESERVED_HANDLES.has(slug)) return `reader-${slug || 'x'}`.slice(0, 24)
+  return slug
+}
+
+export interface EntryDetails {
+  rating?: number | null
+  notes?: string | null
+  finishedAt?: string | null
+  finishedApprox?: boolean
+  genreHint?: string | null
+}
 
 export function createStore(db: D1Database) {
   async function firstPosition(userId: string, shelf: Shelf) {
@@ -86,6 +152,24 @@ export function createStore(db: D1Database) {
       .first<EntryRow>()
     if (!row) throw new LibraryError('That book is not on your shelves', 404)
     return toEntry(row)
+  }
+
+  async function getUser(id: string) {
+    const row = await db.prepare(`${USER_SELECT} WHERE id = ?`).bind(id).first<UserRow>()
+    return row ? toUser(row) : null
+  }
+
+  /** The first free handle based on `base`: karthik, karthik-2, karthik-3… */
+  async function freeHandle(base: string, userId: string) {
+    for (let n = 1; n < 50; n++) {
+      const candidate = n === 1 ? base : `${base.slice(0, 21)}-${n}`
+      const taken = await db
+        .prepare('SELECT id FROM users WHERE handle = ? AND id != ?')
+        .bind(candidate, userId)
+        .first()
+      if (!taken) return candidate
+    }
+    return `${base.slice(0, 15)}-${crypto.randomUUID().slice(0, 8)}`
   }
 
   return {
@@ -115,26 +199,73 @@ export function createStore(db: D1Database) {
       await db.prepare('DELETE FROM sessions WHERE id = ?').bind(id).run()
     },
 
-    // ── Users ───────────────────────────────────────────────────────────────
-    async getUser(id: string) {
-      return db
-        .prepare('SELECT id, name, email, avatar_url AS avatarUrl FROM users WHERE id = ?')
-        .bind(id)
-        .first<User>()
-    },
-    /** Create the reader on first sign-in; refresh their name and photo after. */
-    async upsertUser(sub: string, profile: Omit<User, 'id'>): Promise<User> {
-      const user = await db
+    // ── Readers ─────────────────────────────────────────────────────────────
+    getUser,
+
+    /** Create the reader on first sign-in (with a handle); refresh their name and photo after. */
+    async upsertUser(
+      sub: string,
+      profile: Pick<User, 'name' | 'email' | 'avatarUrl'>,
+    ): Promise<User> {
+      const row = await db
         .prepare(
           `INSERT INTO users (id, google_sub, email, name, avatar_url, created_at)
            VALUES (?, ?, ?, ?, ?, ?)
            ON CONFLICT (google_sub) DO UPDATE SET
              email = excluded.email, name = excluded.name, avatar_url = excluded.avatar_url
-           RETURNING id, name, email, avatar_url AS avatarUrl`,
+           RETURNING id, name, email, avatar_url, handle, is_public`,
         )
         .bind(crypto.randomUUID(), sub, profile.email, profile.name, profile.avatarUrl, Date.now())
-        .first<User>()
-      return user!
+        .first<UserRow>()
+      const user = toUser(row!)
+      if (user.handle) return user
+      const handle = await freeHandle(slugifyHandle(profile.name), user.id)
+      await db.prepare('UPDATE users SET handle = ? WHERE id = ?').bind(handle, user.id).run()
+      return { ...user, handle }
+    },
+
+    async updateProfile(userId: string, changes: { handle?: string; isPublic?: boolean }) {
+      try {
+        if (changes.handle !== undefined) {
+          await db
+            .prepare('UPDATE users SET handle = ? WHERE id = ?')
+            .bind(changes.handle, userId)
+            .run()
+        }
+        if (changes.isPublic !== undefined) {
+          await db
+            .prepare('UPDATE users SET is_public = ? WHERE id = ?')
+            .bind(changes.isPublic ? 1 : 0, userId)
+            .run()
+        }
+      } catch (error) {
+        if (isConstraint(error, 'UNIQUE')) throw new LibraryError('That address is taken', 409)
+        throw error
+      }
+      return (await getUser(userId))!
+    },
+
+    /** A shared library, or null when it doesn't exist or isn't shared. Notes stay private. */
+    async publicLibrary(handle: string) {
+      const row = await db
+        .prepare(`${USER_SELECT} WHERE handle = ? AND is_public = 1`)
+        .bind(handle)
+        .first<UserRow>()
+      if (!row) return null
+      const { results } = await db
+        .prepare(`${ENTRY_SELECT} WHERE ub.user_id = ? ORDER BY ub.shelf, ub.position`)
+        .bind(row.id)
+        .all<EntryRow>()
+      const profile: PublicProfile = {
+        name: row.name,
+        handle: row.handle!,
+        avatarUrl: row.avatar_url,
+      }
+      return {
+        userId: row.id,
+        profile,
+        entries: results.map((r) => ({ ...toEntry(r), notes: null })),
+      }
     },
 
     // ── Library ─────────────────────────────────────────────────────────────
@@ -149,13 +280,25 @@ export function createStore(db: D1Database) {
     getEntry,
 
     /** Catalogue the book if it is new, then put it at the front of the shelf. */
-    async addEntry(userId: string, book: Book, shelf: Shelf, today: string) {
+    async addEntry(
+      userId: string,
+      book: Book,
+      shelf: Shelf,
+      today: string,
+      details: EntryDetails = {},
+    ) {
       const now = Date.now()
-      const dates = datesForShelf(
+      const stamped = datesForShelf(
         { shelf: 'want_to_read', startedAt: null, finishedAt: null },
         shelf,
         today,
       )
+      // An import that knows when a book was finished doesn't pretend it was today.
+      const known = shelf === 'read' && details.finishedAt
+      const finishedAt = known ? details.finishedAt! : stamped.finishedAt
+      const startedAt = known ? null : stamped.startedAt
+      const genres =
+        book.genres.length === 0 && details.genreHint ? [details.genreHint] : book.genres
       const id = crypto.randomUUID()
       const position = frontOf(await firstPosition(userId, shelf))
       try {
@@ -177,16 +320,16 @@ export function createStore(db: D1Database) {
               book.publishedYear,
               book.pageCount,
               book.description,
-              JSON.stringify(book.genres),
+              JSON.stringify(genres),
               book.coverUrl,
               book.isbn13,
               now,
             ),
           db
             .prepare(
-              `INSERT INTO user_books (id, user_id, book_id, shelf, position, started_at, finished_at,
-                 created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              `INSERT INTO user_books (id, user_id, book_id, shelf, position, rating, notes, started_at,
+                 finished_at, finished_approx, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             )
             .bind(
               id,
@@ -194,8 +337,11 @@ export function createStore(db: D1Database) {
               book.id,
               shelf,
               position,
-              dates.startedAt,
-              dates.finishedAt,
+              details.rating ?? null,
+              details.notes ?? null,
+              startedAt,
+              finishedAt,
+              known && details.finishedApprox ? 1 : 0,
               now,
               now,
             ),
@@ -207,10 +353,10 @@ export function createStore(db: D1Database) {
       return getEntry(userId, id)
     },
 
-    async hasBook(userId: string, id: string) {
+    async hasBook(userId: string, bookId: string) {
       const row = await db
         .prepare('SELECT id FROM user_books WHERE user_id = ? AND book_id = ?')
-        .bind(userId, id)
+        .bind(userId, bookId)
         .first<{ id: string }>()
       return row?.id ?? null
     },
@@ -224,7 +370,7 @@ export function createStore(db: D1Database) {
         await db
           .prepare(
             `UPDATE user_books SET shelf = ?, position = ?, rating = ?, notes = ?, started_at = ?,
-               finished_at = ?, updated_at = ?
+               finished_at = ?, finished_approx = ?, updated_at = ?
              WHERE user_id = ? AND id = ?`,
           )
           .bind(
@@ -234,14 +380,16 @@ export function createStore(db: D1Database) {
             next.notes,
             next.startedAt,
             next.finishedAt,
+            next.finishedApprox ? 1 : 0,
             next.updatedAt,
             userId,
             id,
           )
           .run()
       } catch (error) {
-        if (isConstraint(error, 'UNIQUE'))
+        if (isConstraint(error, 'UNIQUE')) {
           throw new LibraryError('Another book already sits in that spot', 409)
+        }
         if (isConstraint(error, 'CHECK')) throw new LibraryError('Those details don’t add up', 400)
         throw error
       }
@@ -265,6 +413,14 @@ export function createStore(db: D1Database) {
       await db
         .prepare('UPDATE books SET spine_color = ? WHERE id = ? AND spine_color IS NULL')
         .bind(color, entry.book.id)
+        .run()
+    },
+
+    /** Fill in a catalogue description the import skipped. Never overwrites one. */
+    async setDescription(bookId: string, description: string) {
+      await db
+        .prepare('UPDATE books SET description = ? WHERE id = ? AND description IS NULL')
+        .bind(description, bookId)
         .run()
     },
 

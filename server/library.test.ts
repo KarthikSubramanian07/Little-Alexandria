@@ -19,6 +19,7 @@ const entry = (index: number, shelf: Shelf, extra: Partial<LibraryEntry> = {}): 
   notes: null,
   startedAt: null,
   finishedAt: null,
+  finishedApprox: false,
   createdAt: 0,
   updatedAt: 0,
   book: bookFromMetadata(FIXTURE_BOOKS[index]!),
@@ -60,6 +61,12 @@ describe('applyPatch', () => {
     expect(applyPatch(entry(0, 'read'), { notes: '   ' }, front, 1).notes).toBeNull()
   })
 
+  it('clears the year-only flag when a reader sets the finish date', () => {
+    const approx = entry(0, 'read', { finishedAt: '2025-12-31', finishedApprox: true })
+    expect(applyPatch(approx, { finishedAt: '2025-06-01' }, front, 1).finishedApprox).toBe(false)
+    expect(applyPatch(approx, { rating: 4 }, front, 1).finishedApprox).toBe(true)
+  })
+
   it('leaves untouched fields alone', () => {
     const rated = entry(0, 'read', { rating: 4, notes: 'Loved it' })
     expect(applyPatch(rated, { rating: 5 }, front, 1)).toMatchObject({
@@ -90,6 +97,16 @@ describe('computeStats', () => {
     expect(stats.byMonth[2]).toBe(1)
     expect(stats.byMonth[4]).toBe(1)
     expect(stats.topGenres[0]).toEqual({ genre: 'Fantasy', count: 3 })
+  })
+
+  it('counts year-only finishes in the total but not in a month', () => {
+    const stats = computeStats(
+      [entry(0, 'read', { finishedAt: '2025-12-31', finishedApprox: true })],
+      {},
+      2025,
+    )
+    expect(stats.booksRead).toBe(1)
+    expect(stats.byMonth.every((count) => count === 0)).toBe(true)
   })
 
   it('has sensible empty values', () => {
