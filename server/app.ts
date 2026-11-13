@@ -5,17 +5,22 @@ import { z } from 'zod'
 import {
   addBookSchema,
   goalSchema,
+  importBatchSchema,
+  profileSchema,
   spineColorSchema,
   updateEntrySchema,
   yearSchema,
 } from '../shared/schemas'
+import type { ImportOutcome } from '../shared/types'
 import { auth } from './auth'
 import type { AppEnv } from './env'
 import { LibraryError, bookFromMetadata, bookId, computeStats, isAllowedCoverHost } from './library'
 import { readSession } from './session'
+import { discoverFor, relatedFor } from './related'
 import { lookupBook, searchBooks } from './sources'
+import { matchOpenLibrary } from './sources/openlibrary'
 import { SourceError } from './sources/types'
-import { createStore } from './store'
+import { RESERVED_HANDLES, createStore } from './store'
 
 /** Parse a JSON body against a schema, or answer 400 with the first problem. */
 async function body<T extends z.ZodType>(c: { req: { json(): Promise<unknown> } }, schema: T) {
@@ -71,6 +76,24 @@ api.get('/cover', async (c) => {
       'Cache-Control': 'public, max-age=31536000, immutable',
     },
   })
+})
+
+/** A shared library, read-only and without notes. 404 unless its owner shared it. */
+api.get('/u/:handle', async (c) => {
+  const store = createStore(c.env.DB)
+  const shared = await store.publicLibrary(c.req.param('handle').toLowerCase())
+  if (!shared) return c.json({ error: 'No shared library at that address' }, 404)
+  const year = new Date().getUTCFullYear()
+  const goals = await store.getGoals(shared.userId)
+  return c.json(
+    {
+      profile: shared.profile,
+      entries: shared.entries,
+      stats: computeStats(shared.entries, goals, year),
+    },
+    200,
+    { 'Cache-Control': 'public, max-age=60' },
+  )
 })
 
 // Everything below needs a signed-in reader.
@@ -141,6 +164,90 @@ reader.put('/goals/:year', async (c) => {
   return c.json({ year, target })
 })
 
+reader.patch('/me', async (c) => {
+  const changes = await body(c, profileSchema)
+  if (changes.handle && RESERVED_HANDLES.has(changes.handle)) {
+    return c.json({ error: 'That address is reserved' }, 409)
+  }
+  const user = await storeOf(c).updateProfile(c.get('userId'), changes)
+  return c.json({ user })
+})
+
+/**
+ * Import a small batch of reading-list rows. The browser sends batches one
+ * after another, so a thousand-book list never hits a request limit, and
+ * books start appearing on the shelves while the rest are still on their way.
+ */
+reader.post('/import', async (c) => {
+  const { rows, today } = await body(c, importBatchSchema)
+  const store = storeOf(c)
+  const userId = c.get('userId')
+  const outcomes: ImportOutcome[] = []
+  let throttled = false
+  for (const row of rows) {
+    if (throttled) {
+      outcomes.push({ status: 'retry', title: row.title })
+      continue
+    }
+    try {
+      const metadata =
+        c.env.BOOK_SOURCE === 'fixture'
+          ? await lookupFixture(c.env, row.title)
+          : await matchOpenLibrary(row)
+      if (!metadata) {
+        outcomes.push({ status: 'unmatched', title: row.title, author: row.author })
+        continue
+      }
+      const book = bookFromMetadata(metadata)
+      if (await store.hasBook(userId, book.id)) {
+        outcomes.push({ status: 'exists', title: book.title })
+        continue
+      }
+      const finishedAt = row.finishedAt ?? (row.finishedYear ? `${row.finishedYear}-12-31` : null)
+      const entry = await store.addEntry(userId, book, row.shelf, today, {
+        rating: row.rating,
+        notes: row.notes,
+        finishedAt,
+        finishedApprox: !row.finishedAt && row.finishedYear !== null,
+        genreHint: row.genreHint,
+      })
+      outcomes.push({ status: 'added', title: book.title, entry })
+    } catch (error) {
+      if (error instanceof LibraryError && error.status === 409) {
+        outcomes.push({ status: 'exists', title: row.title })
+      } else if (error instanceof SourceError) {
+        // The catalogue asked us to slow down: hand the rest back for a retry.
+        throttled = true
+        outcomes.push({ status: 'retry', title: row.title })
+      } else throw error
+    }
+  }
+  return c.json({ outcomes })
+})
+
+/** More like this: the author's other books, similar books, and adaptations. */
+reader.get('/library/:id/related', async (c) => {
+  const store = storeOf(c)
+  const userId = c.get('userId')
+  const [entry, entries] = await Promise.all([
+    store.getEntry(userId, c.req.param('id')),
+    store.listEntries(userId),
+  ])
+  const related = await relatedFor(entry, entries)
+  // Books imported from a list arrive without a description; fill it in once.
+  if (!entry.book.description && related.description) {
+    await store.setDescription(entry.book.id, related.description)
+  }
+  return c.json(related, 200, { 'Cache-Control': 'private, max-age=600' })
+})
+
+reader.get('/discover', async (c) => {
+  const entries = await storeOf(c).listEntries(c.get('userId'))
+  return c.json({ sections: await discoverFor(entries) }, 200, {
+    'Cache-Control': 'private, max-age=900',
+  })
+})
+
 reader.get('/stats', async (c) => {
   const parsed = yearSchema.safeParse(c.req.query('year') ?? new Date().getUTCFullYear())
   if (!parsed.success) return c.json({ error: 'Bad year' }, 400)
@@ -153,6 +260,13 @@ reader.get('/stats', async (c) => {
 })
 
 api.route('/', reader)
+
+/** Offline catalogue lookups for tests and local development. */
+async function lookupFixture(env: AppEnv['Bindings'], title: string) {
+  const results = await searchBooks(env, title)
+  const first = results[0]
+  return first ? lookupBook(env, first.source, first.sourceId) : null
+}
 
 export const app = new Hono<AppEnv>().basePath('/api')
 app.use('*', secureHeaders())

@@ -1,10 +1,10 @@
 import { CollisionPriority } from '@dnd-kit/abstract'
-import { DragDropProvider, useDroppable } from '@dnd-kit/react'
+import { PointerActivationConstraints } from '@dnd-kit/dom'
+import { DragDropProvider, KeyboardSensor, PointerSensor, useDroppable } from '@dnd-kit/react'
 import { isSortable, useSortable } from '@dnd-kit/react/sortable'
-import { useNavigate } from '@tanstack/react-router'
 import { clsx } from 'clsx'
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'motion/react'
-import { createContext, use, useMemo, useState, type ReactNode } from 'react'
+import { createContext, use, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { positionAt } from '../../shared/positions'
 import { SHELF_LABELS, SHELVES, type LibraryEntry, type Shelf } from '../../shared/types'
 import { settle } from '../lib/motion'
@@ -13,54 +13,103 @@ import { EmptyShelfArt } from './art/scenes'
 import { ShelfBook } from './Book'
 import { BookMenu } from './BookMenu'
 
-const SHELF_NOTES: Record<Shelf, { empty: string; hint: string }> = {
+const SHELF_NOTES: Record<Shelf, { empty: string; hint: string; emptyPublic: string }> = {
   want_to_read: {
     empty: 'Nothing planted yet. Every library starts with one seed.',
+    emptyPublic: 'No wishlist yet.',
     hint: 'the someday pile',
   },
   reading: {
     empty: 'No book open right now. Pick one up and we’ll keep your place.',
+    emptyPublic: 'Between books right now.',
     hint: 'on the nightstand',
   },
   read: {
     empty: 'Finished books bloom here. Your first one is the hardest to put down.',
+    emptyPublic: 'Nothing finished yet.',
     hint: 'well loved',
   },
 }
 
+/**
+ * The book is both the button that opens it and the handle that drags it, so
+ * Enter opens it and Space picks it up (arrows move it, Space or Enter drops it).
+ */
+const SENSORS = [
+  // A click opens the book; a drag needs a deliberate nudge (mouse) or a
+  // press-and-hold (touch), so scrolling a shelf on a phone never grabs a book.
+  PointerSensor.configure({
+    activationConstraints: (event) =>
+      event.pointerType === 'touch'
+        ? [new PointerActivationConstraints.Delay({ value: 250, tolerance: 6 })]
+        : [new PointerActivationConstraints.Distance({ value: 6 })],
+  }),
+  KeyboardSensor.configure({
+    keyboardCodes: {
+      start: ['Space'],
+      cancel: ['Escape'],
+      end: ['Space', 'Enter', 'Tab'],
+      up: ['ArrowUp'],
+      down: ['ArrowDown'],
+      left: ['ArrowLeft'],
+      right: ['ArrowRight'],
+    },
+  }),
+]
+
+/** A single row shows this many books before the "see the whole shelf" bookend. */
+const ROW_LIMIT = 40
+const BOOK_WIDTH = 108
+const GAP = 24
+
 interface BookcaseState {
   dragging: boolean
+  /** Dragging is off while filtering (neighbours would be wrong) and on shared pages. */
+  sortable: boolean
+  readOnly: boolean
   openId: string | null
+  onOpen: (entry: LibraryEntry) => void
   /** Books created after this moment are new arrivals and drop onto the shelf. */
   mountedAt: number
 }
-const BookcaseContext = createContext<BookcaseState>({ dragging: false, openId: null, mountedAt: 0 })
+const BookcaseContext = createContext<BookcaseState>({
+  dragging: false,
+  sortable: false,
+  readOnly: true,
+  openId: null,
+  onOpen: () => undefined,
+  mountedAt: 0,
+})
 
-export function Bookcase({
-  entries,
-  openId,
-  onFindBook,
-}: {
+interface BookcaseProps {
   entries: LibraryEntry[]
   openId: string | null
-  onFindBook: (shelf: Shelf) => void
-}) {
+  onOpen: (entry: LibraryEntry) => void
+  onFindBook?: (shelf: Shelf) => void
+  /** Shared pages: no dragging, no menus. */
+  readOnly?: boolean
+  /** True while the reader is filtering, which pauses drag and drop. */
+  filtered?: boolean
+}
+
+export function Bookcase({ entries, openId, onOpen, onFindBook, readOnly = false, filtered = false }: BookcaseProps) {
   const move = useMoveEntry()
   const [dragging, setDragging] = useState(false)
+  const [mountedAt] = useState(() => Date.now())
   const byShelf = useMemo(
     () => Object.fromEntries(SHELVES.map((shelf) => [shelf, shelfOf(entries, shelf)])) as Record<Shelf, LibraryEntry[]>,
     [entries],
   )
-
-  const [mountedAt] = useState(() => Date.now())
+  const sortable = !readOnly && !filtered
 
   return (
-    <BookcaseContext value={{ dragging, openId, mountedAt }}>
+    <BookcaseContext value={{ dragging, sortable, readOnly, openId, onOpen, mountedAt }}>
       <DragDropProvider
+        sensors={SENSORS}
         onDragStart={() => setDragging(true)}
         onDragEnd={(event) => {
           setDragging(false)
-          if (event.canceled) return
+          if (event.canceled || !sortable) return
           const { source } = event.operation
           if (!isSortable(source)) return
           const group = source.group as Shelf | undefined
@@ -83,6 +132,22 @@ export function Bookcase({
   )
 }
 
+/** How many books fit across the shelf, measured live. */
+function usePerRow() {
+  const [node, ref] = useState<HTMLElement | null>(null)
+  const [perRow, setPerRow] = useState(6)
+  useEffect(() => {
+    if (!node) return
+    const observer = new ResizeObserver(([entry]) => {
+      const width = (entry?.contentRect.width ?? 0) - 32
+      setPerRow(Math.max(2, Math.floor((width + GAP) / (BOOK_WIDTH + GAP))))
+    })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [node])
+  return { ref, perRow }
+}
+
 function ShelfRow({
   shelf,
   entries,
@@ -92,9 +157,12 @@ function ShelfRow({
   shelf: Shelf
   entries: LibraryEntry[]
   index: number
-  onFindBook: (shelf: Shelf) => void
+  onFindBook?: (shelf: Shelf) => void
 }) {
-  const { ref, isDropTarget } = useDroppable({
+  const { readOnly } = use(BookcaseContext)
+  const [expanded, setExpanded] = useState(false)
+  const { ref: measure, perRow } = usePerRow()
+  const { ref: drop, isDropTarget } = useDroppable({
     id: shelf,
     type: 'shelf',
     accept: 'book',
@@ -102,6 +170,13 @@ function ShelfRow({
   })
   const notes = SHELF_NOTES[shelf]
   const headingId = `shelf-${shelf}`
+  const overflow = entries.length > ROW_LIMIT || entries.length > perRow
+  const rows = useMemo(() => {
+    if (!expanded) return [entries.slice(0, ROW_LIMIT)]
+    const chunks: LibraryEntry[][] = []
+    for (let i = 0; i < entries.length; i += perRow) chunks.push(entries.slice(i, i + perRow))
+    return chunks
+  }, [entries, expanded, perRow])
 
   return (
     <motion.section
@@ -111,86 +186,139 @@ function ShelfRow({
       transition={{ ...settle, delay: index * 0.08 }}
     >
       <header className="mb-3 flex items-baseline justify-between gap-4 px-1">
-        <div className="flex items-baseline gap-3">
-          <h2 id={headingId} className="font-display text-2xl font-medium tracking-tight sm:text-[1.7rem]">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <h2 id={headingId} className="font-display text-2xl font-medium tracking-tight whitespace-nowrap sm:text-[1.7rem]">
             {SHELF_LABELS[shelf]}
           </h2>
-          <span className="font-hand text-lg text-ink-faint">{notes.hint}</span>
+          <span className="hidden truncate font-hand text-lg text-ink-faint sm:inline">{notes.hint}</span>
         </div>
-        <span className="font-mono text-xs text-ink-faint tabular-nums">
-          {entries.length} {entries.length === 1 ? 'book' : 'books'}
-        </span>
+        <div className="flex shrink-0 items-baseline gap-3">
+          {overflow && (
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              aria-expanded={expanded}
+              className="rounded-full px-2.5 py-0.5 text-sm font-medium text-moss hover:bg-moss-soft"
+            >
+              {expanded ? 'Fold the shelf' : 'See the whole shelf'}
+            </button>
+          )}
+          <span className="font-mono text-xs text-ink-faint tabular-nums">
+            {entries.length.toLocaleString()} {entries.length === 1 ? 'book' : 'books'}
+          </span>
+        </div>
       </header>
 
       <div
-        ref={ref}
-        className={clsx(
-          'shelf-back relative rounded-t-xl transition-colors duration-300',
-          isDropTarget && 'bg-moss-soft/50',
-        )}
+        ref={(node) => {
+          drop(node)
+          measure(node)
+        }}
+        className={clsx('rounded-t-xl transition-colors duration-300', isDropTarget && 'bg-moss-soft/50')}
       >
         {entries.length === 0 ? (
-          <EmptyShelf shelf={shelf} note={notes.empty} onFindBook={() => onFindBook(shelf)} />
+          <div className="shelf-back rounded-t-xl">
+            <EmptyShelf
+              shelf={shelf}
+              note={readOnly ? notes.emptyPublic : notes.empty}
+              onFindBook={onFindBook ? () => onFindBook(shelf) : undefined}
+            />
+            <div className="plank" />
+          </div>
         ) : (
-          <ol
-            className="scrollbar-none flex min-h-[200px] items-end gap-5 overflow-x-auto px-4 pt-10 pb-0 sm:gap-6 sm:px-6"
-            style={{ maskImage: 'linear-gradient(90deg, transparent, black 16px, black calc(100% - 24px), transparent)' }}
-          >
-            <AnimatePresence initial={true} mode="popLayout">
-              {entries.map((entry, i) => (
-                <SortableBook key={entry.id} entry={entry} index={i} shelf={shelf} />
-              ))}
-            </AnimatePresence>
-            <li aria-hidden className="w-2 shrink-0" />
-          </ol>
+          rows.map((row, rowIndex) => {
+            const offset = expanded ? rowIndex * perRow : 0
+            const hidden = !expanded ? entries.length - row.length : 0
+            return (
+              <div
+                key={rowIndex}
+                className="shelf-back rounded-t-xl [contain-intrinsic-size:auto_224px] [content-visibility:auto]"
+              >
+                <ol
+                  className={clsx(
+                    'flex min-h-[200px] items-end gap-6 px-4 pt-10 sm:px-6',
+                    !expanded && 'scrollbar-none overflow-x-auto',
+                  )}
+                  style={
+                    expanded
+                      ? undefined
+                      : { maskImage: 'linear-gradient(90deg, transparent, black 16px, black calc(100% - 24px), transparent)' }
+                  }
+                >
+                  <AnimatePresence initial={true} mode="popLayout">
+                    {row.map((entry, i) => (
+                      <SortableBook key={entry.id} entry={entry} index={offset + i} shelf={shelf} />
+                    ))}
+                  </AnimatePresence>
+                  {hidden > 0 && (
+                    <li className="shrink-0 list-none self-end pb-2">
+                      <button
+                        type="button"
+                        onClick={() => setExpanded(true)}
+                        className="flex h-[150px] w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-line-strong text-center text-ink-soft transition hover:border-moss hover:text-moss"
+                      >
+                        <span className="font-display text-2xl">+{hidden.toLocaleString()}</span>
+                        <span className="font-hand text-base leading-tight">more on this shelf</span>
+                      </button>
+                    </li>
+                  )}
+                  {!expanded && <li aria-hidden className="w-2 shrink-0" />}
+                </ol>
+                <div className="plank" />
+              </div>
+            )
+          })
         )}
-        <div className="plank" />
       </div>
     </motion.section>
   )
 }
 
 function SortableBook({ entry, index, shelf }: { entry: LibraryEntry; index: number; shelf: Shelf }) {
-  const navigate = useNavigate()
   const reduce = useReducedMotion()
-  const { dragging: anyDragging, openId, mountedAt } = use(BookcaseContext)
-  const { ref, isDragging } = useSortable({
+  const { dragging: anyDragging, sortable, readOnly, openId, onOpen, mountedAt } = use(BookcaseContext)
+  const { ref, handleRef, isDragging } = useSortable({
     id: entry.id,
     index,
     group: shelf,
     type: 'book',
     accept: 'book',
+    disabled: !sortable,
   })
   const isNew = entry.createdAt > mountedAt
 
   return (
     <motion.li
-      ref={ref}
+      // With dragging off (shared pages, filtering) nothing is attached, so no
+      // book is announced as a disabled draggable.
+      ref={sortable ? ref : undefined}
       layout={anyDragging || reduce ? false : 'position'}
-      className="group/book relative shrink-0 list-none pb-0 [touch-action:manipulation]"
+      className="group/book relative shrink-0 list-none [touch-action:manipulation]"
       initial={isNew && !reduce ? { opacity: 0, y: -60, rotate: -8, scale: 0.9 } : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
       exit={reduce ? { opacity: 0 } : { opacity: 0, y: -24, scale: 0.92, transition: { duration: 0.2 } }}
       transition={
         isNew
           ? { type: 'spring', stiffness: 320, damping: 18, mass: 1.1 }
-          : { ...settle, delay: Math.min(index, 12) * 0.035 }
+          : { ...settle, delay: Math.min(index % 24, 12) * 0.035 }
       }
       data-dragging={isDragging || undefined}
     >
       <ShelfBook
         book={entry.book}
-        entryId={entry.id}
+        entryId={readOnly ? undefined : entry.id}
+        layoutKey={entry.id}
+        handleRef={sortable ? handleRef : undefined}
         hidden={openId === entry.id}
         dragging={isDragging}
-        onOpen={() => void navigate({ to: '/library/$entryId', params: { entryId: entry.id } })}
+        onOpen={() => onOpen(entry)}
       />
-      <BookMenu entry={entry} />
+      {!readOnly && <BookMenu entry={entry} />}
     </motion.li>
   )
 }
 
-function EmptyShelf({ shelf, note, onFindBook }: { shelf: Shelf; note: string; onFindBook: () => void }) {
+function EmptyShelf({ shelf, note, onFindBook }: { shelf: Shelf; note: string; onFindBook?: () => void }) {
   return (
     <div className="flex min-h-[200px] flex-col items-center justify-center gap-4 px-6 pt-6 pb-5 text-center sm:flex-row sm:gap-8 sm:text-left">
       <div className="size-24 shrink-0 sm:size-28">
@@ -198,14 +326,16 @@ function EmptyShelf({ shelf, note, onFindBook }: { shelf: Shelf; note: string; o
       </div>
       <div className="max-w-sm">
         <p className="font-hand text-xl leading-snug text-ink-soft">{note}</p>
-        <button
-          type="button"
-          onClick={onFindBook}
-          className="mt-3 inline-flex items-center gap-2 rounded-full border border-line-strong px-4 py-1.5 text-sm font-medium text-ink transition hover:border-moss hover:bg-moss hover:text-on-moss active:scale-[0.97]"
-        >
-          Find a book
-          <span aria-hidden>→</span>
-        </button>
+        {onFindBook && (
+          <button
+            type="button"
+            onClick={onFindBook}
+            className="mt-3 inline-flex items-center gap-2 rounded-full border border-line-strong px-4 py-1.5 text-sm font-medium text-ink transition hover:border-moss hover:bg-moss hover:text-on-moss active:scale-[0.97]"
+          >
+            Find a book
+            <span aria-hidden>→</span>
+          </button>
+        )}
       </div>
     </div>
   )

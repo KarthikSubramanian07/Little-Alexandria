@@ -16,6 +16,17 @@ export interface User {
   name: string
   email: string | null
   avatarUrl: string | null
+  /** The reader's public address: /u/<handle>. */
+  handle: string
+  /** Whether /u/<handle> shows their shelves to anyone with the link. */
+  isPublic: boolean
+}
+
+/** What a stranger sees: no email, no notes, nothing private. */
+export interface PublicProfile {
+  name: string
+  handle: string
+  avatarUrl: string | null
 }
 
 export interface Book {
@@ -45,6 +56,8 @@ export interface LibraryEntry {
   startedAt: string | null
   /** 'YYYY-MM-DD' */
   finishedAt: string | null
+  /** True when only the year is known (finishedAt is then that year's 31 December). */
+  finishedApprox: boolean
   createdAt: number
   updatedAt: number
   book: Book
@@ -73,3 +86,25 @@ export interface ReadingStats {
   currentlyReading: number
   libraryTotal: number
 }
+
+/** One book from an imported reading list, before it is matched to the catalogue. */
+export interface ImportRow {
+  title: string
+  author: string | null
+  isbn: string | null
+  shelf: Shelf
+  rating: number | null
+  /** 'YYYY-MM-DD' when the list knows the day. */
+  finishedAt: string | null
+  /** The year, when that is all the list knows. */
+  finishedYear: number | null
+  notes: string | null
+  /** A genre from the list's own grouping, used when the catalogue has none. */
+  genreHint: string | null
+}
+
+export type ImportOutcome =
+  | { status: 'added'; title: string; entry: LibraryEntry }
+  | { status: 'exists'; title: string }
+  | { status: 'unmatched'; title: string; author: string | null }
+  | { status: 'retry'; title: string }

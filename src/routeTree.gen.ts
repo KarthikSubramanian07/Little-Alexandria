@@ -10,13 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as GardenRouteImport } from './routes/garden'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LibraryEntryIdRouteImport } from './routes/library.$entryId'
+import { Route as UHandleRouteImport } from './routes/u.$handle'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiscoverRoute = DiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GardenRoute = GardenRouteImport.update({
@@ -34,38 +41,70 @@ const LibraryEntryIdRoute = LibraryEntryIdRouteImport.update({
   path: '/$entryId',
   getParentRoute: () => LibraryRoute,
 } as any)
+const UHandleRoute = UHandleRouteImport.update({
+  id: '/u/$handle',
+  path: '/u/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/discover': typeof DiscoverRoute
   '/garden': typeof GardenRoute
   '/library': typeof LibraryRouteWithChildren
   '/library/$entryId': typeof LibraryEntryIdRoute
+  '/u/$handle': typeof UHandleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/discover': typeof DiscoverRoute
   '/garden': typeof GardenRoute
   '/library': typeof LibraryRouteWithChildren
   '/library/$entryId': typeof LibraryEntryIdRoute
+  '/u/$handle': typeof UHandleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/discover': typeof DiscoverRoute
   '/garden': typeof GardenRoute
   '/library': typeof LibraryRouteWithChildren
   '/library/$entryId': typeof LibraryEntryIdRoute
+  '/u/$handle': typeof UHandleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/garden' | '/library' | '/library/$entryId'
+  fullPaths:
+    | '/'
+    | '/discover'
+    | '/garden'
+    | '/library'
+    | '/library/$entryId'
+    | '/u/$handle'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/garden' | '/library' | '/library/$entryId'
-  id: '__root__' | '/' | '/garden' | '/library' | '/library/$entryId'
+  to:
+    | '/'
+    | '/discover'
+    | '/garden'
+    | '/library'
+    | '/library/$entryId'
+    | '/u/$handle'
+  id:
+    | '__root__'
+    | '/'
+    | '/discover'
+    | '/garden'
+    | '/library'
+    | '/library/$entryId'
+    | '/u/$handle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DiscoverRoute: typeof DiscoverRoute
   GardenRoute: typeof GardenRoute
   LibraryRoute: typeof LibraryRouteWithChildren
+  UHandleRoute: typeof UHandleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,6 +114,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/discover': {
+      id: '/discover'
+      path: '/discover'
+      fullPath: '/discover'
+      preLoaderRoute: typeof DiscoverRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/garden': {
@@ -98,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryEntryIdRouteImport
       parentRoute: typeof LibraryRoute
     }
+    '/u/$handle': {
+      id: '/u/$handle'
+      path: '/u/$handle'
+      fullPath: '/u/$handle'
+      preLoaderRoute: typeof UHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -114,8 +167,10 @@ const LibraryRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DiscoverRoute: DiscoverRoute,
   GardenRoute: GardenRoute,
   LibraryRoute: LibraryRouteWithChildren,
+  UHandleRoute: UHandleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

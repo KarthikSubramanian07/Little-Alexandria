@@ -23,10 +23,11 @@ interface SearchDialogProps {
   onOpenChange: (open: boolean) => void
   shelf: Shelf
   onShelfChange: (shelf: Shelf) => void
+  initialQuery?: string
 }
 
-export function SearchDialog({ open, onOpenChange, shelf, onShelfChange }: SearchDialogProps) {
-  const [query, setQuery] = useState('')
+export function SearchDialog({ open, onOpenChange, shelf, onShelfChange, initialQuery = '' }: SearchDialogProps) {
+  const [query, setQuery] = useState(initialQuery)
   const debounced = useDebounced(query.trim(), 280)
   const deferred = useDeferredValue(debounced)
   const search = useQuery({

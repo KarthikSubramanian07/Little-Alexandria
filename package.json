@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@dnd-kit/abstract": "0.5.3",
+    "@dnd-kit/dom": "0.5.3",
     "@dnd-kit/helpers": "^0.5.3",
     "@dnd-kit/react": "^0.5.3",
     "@fontsource-variable/fraunces": "^5.3.0",

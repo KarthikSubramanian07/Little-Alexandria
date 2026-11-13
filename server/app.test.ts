@@ -272,6 +272,120 @@ describe('library', () => {
   })
 })
 
+describe('sharing', () => {
+  const me = async (call: ReturnType<typeof reader>) =>
+    (await (await call('/api/auth/me')).json()).user
+
+  it('gives every reader a handle, private by default', async () => {
+    const call = await signedIn()
+    const user = await me(call)
+    expect(user.handle).toBe('guest-reader')
+    expect(user.isPublic).toBe(false)
+    expect((await reader()(`/api/u/${user.handle}`)).status).toBe(404)
+  })
+
+  it('shares shelves without notes once the reader opts in', async () => {
+    const call = await signedIn()
+    const { entry } = await (await add(call, 'OL893414W', 'read')).json()
+    await call(`/api/library/${entry.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ notes: 'private thoughts', rating: 5 }),
+    })
+    const update = await call('/api/me', {
+      method: 'PATCH',
+      body: JSON.stringify({ isPublic: true, handle: 'Dune-Fan' }),
+    })
+    expect((await update.json()).user).toMatchObject({ handle: 'dune-fan', isPublic: true })
+
+    const shared = await (await reader()('/api/u/dune-fan')).json()
+    expect(shared.profile).toEqual({ name: 'Guest Reader', handle: 'dune-fan', avatarUrl: null })
+    expect(shared.entries[0]).toMatchObject({ rating: 5, notes: null })
+    expect(shared.stats.booksRead).toBe(1)
+    expect(JSON.stringify(shared)).not.toContain('private thoughts')
+    expect(JSON.stringify(shared)).not.toContain('email')
+  })
+
+  it('refuses reserved, malformed, and taken handles', async () => {
+    const call = await signedIn()
+    const set = async (handle: string) =>
+      (await call('/api/me', { method: 'PATCH', body: JSON.stringify({ handle }) })).status
+    expect(await set('library')).toBe(409)
+    expect(await set('a')).toBe(400)
+    expect(await set('-bad-')).toBe(400)
+    const { createStore } = await import('./store')
+    const other = await createStore(database.db).upsertUser('google:x', {
+      name: 'Taken',
+      email: null,
+      avatarUrl: null,
+    })
+    expect(await set(other.handle)).toBe(409)
+  })
+})
+
+describe('import', () => {
+  const row = (title: string, extra: Record<string, unknown> = {}) => ({
+    title,
+    author: null,
+    isbn: null,
+    shelf: 'want_to_read',
+    rating: null,
+    finishedAt: null,
+    finishedYear: null,
+    notes: null,
+    genreHint: null,
+    ...extra,
+  })
+
+  it('shelves matches, skips duplicates, and reports what it could not find', async () => {
+    const call = await signedIn()
+    await add(call, 'OL893414W')
+    const response = await call('/api/import', {
+      method: 'POST',
+      body: JSON.stringify({
+        today: '2026-11-13',
+        rows: [
+          row('Piranesi', { shelf: 'read', finishedYear: 2025, rating: 4 }),
+          row('Dune'),
+          row('A Book That Does Not Exist'),
+          row('Circe', { shelf: 'read', finishedAt: '2024-05-01', notes: 'Wonderful' }),
+        ],
+      }),
+    })
+    expect(response.status).toBe(200)
+    const { outcomes } = await response.json()
+    expect(outcomes.map((outcome: { status: string }) => outcome.status)).toEqual([
+      'added',
+      'exists',
+      'unmatched',
+      'added',
+    ])
+    expect(outcomes[0].entry).toMatchObject({
+      shelf: 'read',
+      finishedAt: '2025-12-31',
+      finishedApprox: true,
+      rating: 4,
+    })
+    expect(outcomes[3].entry).toMatchObject({
+      finishedAt: '2024-05-01',
+      finishedApprox: false,
+      notes: 'Wonderful',
+    })
+  })
+
+  it('caps batch size', async () => {
+    const call = await signedIn()
+    const rows = Array.from({ length: 7 }, (_, i) => row(`Book ${i}`))
+    expect(
+      (
+        await call('/api/import', {
+          method: 'POST',
+          body: JSON.stringify({ today: '2026-11-13', rows }),
+        })
+      ).status,
+    ).toBe(400)
+  })
+})
+
 describe('cover proxy', () => {
   it('refuses hosts outside the allowlist', async () => {
     const response = await reader()(

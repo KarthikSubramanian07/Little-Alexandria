@@ -87,7 +87,10 @@ function ClothCover({ book, color, size }: { book: BookData; color: string; size
   return (
     <div
       className="flex h-full w-full flex-col justify-between p-[9%] text-center"
-      style={{ color: ink, background: `linear-gradient(160deg, rgb(255 255 255 / 0.08), transparent 60%), ${color}` }}
+      style={{
+        color: ink,
+        background: `linear-gradient(160deg, rgb(255 255 255 / 0.08), transparent 60%), ${color}`,
+      }}
     >
       <div className="mx-auto h-px w-1/2 opacity-50" style={{ background: ink }} />
       <p
@@ -98,7 +101,12 @@ function ClothCover({ book, color, size }: { book: BookData; color: string; size
       >
         {book.title}
       </p>
-      <p className={clsx('font-sans tracking-wide uppercase opacity-80', size === 'lg' ? 'text-xs' : 'text-[7px]')}>
+      <p
+        className={clsx(
+          'font-sans tracking-wide uppercase opacity-80',
+          size === 'lg' ? 'text-xs' : 'text-[7px]',
+        )}
+      >
         {book.authors[0] ?? ''}
       </p>
     </div>
@@ -107,7 +115,12 @@ function ClothCover({ book, color, size }: { book: BookData; color: string; size
 
 interface ShelfBookProps {
   book: BookData
-  entryId: string
+  /** Set for the reader's own books, so the cover's colour can be saved. */
+  entryId?: string
+  /** Pairs this cover with the detail view's for the shared-element flight. */
+  layoutKey: string
+  /** The drag handle: the book itself, so it is one control to open and to drag. */
+  handleRef?: (element: Element | null) => void
   /** While the detail view holds this cover, its slot on the shelf stays empty. */
   hidden?: boolean
   dragging?: boolean
@@ -118,7 +131,15 @@ interface ShelfBookProps {
  * A book standing on the shelf. Hover lifts it and turns it toward you; the
  * cover carries a layoutId so it can fly into the detail view and back.
  */
-export function ShelfBook({ book, entryId, hidden, dragging, onOpen }: ShelfBookProps) {
+export function ShelfBook({
+  book,
+  entryId,
+  layoutKey,
+  handleRef,
+  hidden,
+  dragging,
+  onOpen,
+}: ShelfBookProps) {
   const reduce = useReducedMotion()
   const { w, h } = SIZES.md
   return (
@@ -131,23 +152,30 @@ export function ShelfBook({ book, entryId, hidden, dragging, onOpen }: ShelfBook
           dragging ? 'scale-75 opacity-20' : 'opacity-60',
         )}
       />
-      {!hidden && (
-        <motion.button
-          type="button"
-          layoutId={`cover-${entryId}`}
-          onClick={onOpen}
-          aria-label={`Open ${book.title}${book.authors[0] ? ` by ${book.authors[0]}` : ''}`}
-          className="group absolute inset-0 block cursor-pointer rounded-sm outline-offset-4"
-          style={{ transformStyle: 'preserve-3d', transformOrigin: '50% 100%' }}
-          initial={false}
-          whileHover={reduce || dragging ? undefined : { y: -12, rotateY: -18, rotateX: 4 }}
-          whileTap={reduce ? undefined : { scale: 0.97 }}
-          animate={dragging ? { rotateZ: -4, scale: 1.06, y: -8 } : { rotateZ: 0, scale: 1, y: 0 }}
-          transition={settle}
-        >
-          <Cover book={book} entryId={entryId} />
-        </motion.button>
-      )}
+      {/* While the detail card holds this cover, the button stays mounted (it is
+          the drag handle) but steps aside: invisible, unfocusable, unpaired. */}
+      <motion.button
+        ref={handleRef}
+        type="button"
+        layoutId={hidden ? undefined : `cover-${layoutKey}`}
+        aria-hidden={hidden || undefined}
+        tabIndex={hidden ? -1 : undefined}
+        onClick={onOpen}
+        aria-label={`Open ${book.title}${book.authors[0] ? ` by ${book.authors[0]}` : ''}`}
+        className="group absolute inset-0 block cursor-pointer rounded-sm outline-offset-4"
+        style={{
+          transformStyle: 'preserve-3d',
+          transformOrigin: '50% 100%',
+          visibility: hidden ? 'hidden' : undefined,
+        }}
+        initial={false}
+        whileHover={reduce || dragging ? undefined : { y: -12, rotateY: -18, rotateX: 4 }}
+        whileTap={reduce ? undefined : { scale: 0.97 }}
+        animate={dragging ? { rotateZ: -4, scale: 1.06, y: -8 } : { rotateZ: 0, scale: 1, y: 0 }}
+        transition={settle}
+      >
+        <Cover book={book} entryId={entryId} />
+      </motion.button>
     </div>
   )
 }

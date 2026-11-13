@@ -169,6 +169,9 @@ importers:
       '@dnd-kit/abstract':
         specifier: 0.5.3
         version: 0.5.3
+      '@dnd-kit/dom':
+        specifier: 0.5.3
+        version: 0.5.3
       '@dnd-kit/helpers':
         specifier: ^0.5.3
         version: 0.5.3
