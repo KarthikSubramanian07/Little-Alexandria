@@ -101,7 +101,10 @@ export const auth = new Hono<AppEnv>()
   .post('/guest', async (c) => {
     if (c.env.DEV_LOGIN !== '1') return c.json({ error: 'Not available' }, 404)
     const store = createStore(c.env.DB)
-    const user = await store.upsertUser('guest', {
+    // Tests pass a key so each one gets its own empty library.
+    const body = (await c.req.json().catch(() => ({}))) as { key?: unknown }
+    const key = typeof body.key === 'string' && /^[\w-]{1,40}$/.test(body.key) ? `:${body.key}` : ''
+    const user = await store.upsertUser(`guest${key}`, {
       name: 'Guest Reader',
       email: null,
       avatarUrl: null,

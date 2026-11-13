@@ -219,9 +219,18 @@ export function createStore(db: D1Database) {
         .first<UserRow>()
       const user = toUser(row!)
       if (user.handle) return user
-      const handle = await freeHandle(slugifyHandle(profile.name), user.id)
-      await db.prepare('UPDATE users SET handle = ? WHERE id = ?').bind(handle, user.id).run()
-      return { ...user, handle }
+      // Two new readers with the same name can race for the same handle; the
+      // unique index settles it, and the loser simply takes the next one.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const handle = await freeHandle(slugifyHandle(profile.name), user.id)
+        try {
+          await db.prepare('UPDATE users SET handle = ? WHERE id = ?').bind(handle, user.id).run()
+          return { ...user, handle }
+        } catch (error) {
+          if (!isConstraint(error, 'UNIQUE')) throw error
+        }
+      }
+      throw new Error('Could not find a free handle')
     },
 
     async updateProfile(userId: string, changes: { handle?: string; isPublic?: boolean }) {
