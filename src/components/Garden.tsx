@@ -5,7 +5,7 @@ import type { LibraryEntry, ReadingStats } from '../../shared/types'
 import { bloomColor, fallbackSpine } from '../lib/color'
 import { useSetGoal } from '../lib/queries'
 import { Flower } from './art/Flower'
-import { CRAYON } from './art/ink'
+import { CRAYON } from './art/palette'
 import { Fireflies, GoalSun, SeedBed } from './art/scenes'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

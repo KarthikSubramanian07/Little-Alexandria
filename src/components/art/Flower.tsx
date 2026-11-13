@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'motion/react'
-import { CRAYON, seeded } from './ink'
+import { CRAYON, seeded } from './palette'
 
 export type FlowerKind = 'daisy' | 'tulip' | 'sunflower' | 'bluebell' | 'poppy'
 const KINDS: FlowerKind[] = ['daisy', 'tulip', 'sunflower', 'bluebell', 'poppy']

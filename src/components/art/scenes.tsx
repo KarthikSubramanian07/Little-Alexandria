@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from 'motion/react'
 import type { Shelf } from '../../../shared/types'
 import { Flower } from './Flower'
-import { CRAYON } from './ink'
+import { CRAYON } from './palette'
 
 const line = {
   fill: 'none',

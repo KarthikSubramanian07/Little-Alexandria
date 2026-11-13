@@ -4,7 +4,7 @@ import { isSortable, useSortable } from '@dnd-kit/react/sortable'
 import { useNavigate } from '@tanstack/react-router'
 import { clsx } from 'clsx'
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'motion/react'
-import { createContext, use, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createContext, use, useMemo, useState, type ReactNode } from 'react'
 import { positionAt } from '../../shared/positions'
 import { SHELF_LABELS, SHELVES, type LibraryEntry, type Shelf } from '../../shared/types'
 import { settle } from '../lib/motion'
@@ -31,10 +31,10 @@ const SHELF_NOTES: Record<Shelf, { empty: string; hint: string }> = {
 interface BookcaseState {
   dragging: boolean
   openId: string | null
-  /** Ids that were already on the shelves, so only genuinely new books drop in. */
-  known: Set<string>
+  /** Books created after this moment are new arrivals and drop onto the shelf. */
+  mountedAt: number
 }
-const BookcaseContext = createContext<BookcaseState>({ dragging: false, openId: null, known: new Set() })
+const BookcaseContext = createContext<BookcaseState>({ dragging: false, openId: null, mountedAt: 0 })
 
 export function Bookcase({
   entries,
@@ -52,15 +52,10 @@ export function Bookcase({
     [entries],
   )
 
-  // Remember which books were here at the last render; anything else is new.
-  const knownRef = useRef<Set<string>>(new Set(entries.map((entry) => entry.id)))
-  const known = knownRef.current
-  useEffect(() => {
-    knownRef.current = new Set(entries.map((entry) => entry.id))
-  }, [entries])
+  const [mountedAt] = useState(() => Date.now())
 
   return (
-    <BookcaseContext value={{ dragging, openId, known }}>
+    <BookcaseContext value={{ dragging, openId, mountedAt }}>
       <DragDropProvider
         onDragStart={() => setDragging(true)}
         onDragEnd={(event) => {
@@ -158,7 +153,7 @@ function ShelfRow({
 function SortableBook({ entry, index, shelf }: { entry: LibraryEntry; index: number; shelf: Shelf }) {
   const navigate = useNavigate()
   const reduce = useReducedMotion()
-  const { dragging: anyDragging, openId, known } = use(BookcaseContext)
+  const { dragging: anyDragging, openId, mountedAt } = use(BookcaseContext)
   const { ref, isDragging } = useSortable({
     id: entry.id,
     index,
@@ -166,7 +161,7 @@ function SortableBook({ entry, index, shelf }: { entry: LibraryEntry; index: num
     type: 'book',
     accept: 'book',
   })
-  const isNew = !known.has(entry.id)
+  const isNew = entry.createdAt > mountedAt
 
   return (
     <motion.li

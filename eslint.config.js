@@ -18,4 +18,6 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
+  // TanStack route files export a Route object alongside their components by design.
+  { files: ['src/routes/**/*.tsx'], rules: { 'react-refresh/only-export-components': 'off' } },
 )

@@ -1,4 +1,4 @@
-import { CRAYON } from './art/ink'
+import { CRAYON } from './art/palette'
 
 /** The mark: a little arched library window with a sprout, then the name in Fraunces. */
 export function LogoMark({ className = 'size-8' }: { className?: string }) {
