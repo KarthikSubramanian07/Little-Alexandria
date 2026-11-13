@@ -3,12 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Little Alexandria · A bookshelf that feels like yours</title>
-    <meta
-      name="description"
-      content="A warm, hand-drawn home for the books you want to read, are reading, and have loved. Shelve books, keep notes, and watch your reading garden grow."
-    />
+    <!-- page:head -->
+    <title>Little Alexandria · A hand-drawn bookshelf and reading tracker</title>
+    <meta name="description" content="A warm, hand-drawn home for the books you want to read, are reading, and have loved. Shelve books, keep notes, and watch your reading garden grow." />
     <link rel="canonical" href="https://little-alexandria.pages.dev/" />
+    <link rel="alternate" type="text/markdown" href="/index.md" />
+    <meta property="og:title" content="Little Alexandria · A hand-drawn bookshelf and reading tracker" />
+    <meta property="og:description" content="A warm, hand-drawn home for the books you want to read, are reading, and have loved. Shelve books, keep notes, and watch your reading garden grow." />
+    <meta property="og:url" content="https://little-alexandria.pages.dev/" />
+    <meta name="keywords" content="reading tracker, bookshelf, reading garden, reading goal" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://little-alexandria.pages.dev/#organization","name":"Little Alexandria","url":"https://little-alexandria.pages.dev/","logo":"https://little-alexandria.pages.dev/icon-512.png","description":"Little Alexandria is an independent, open-source bookshelf and reading tracker, made by hand for people who love books.","sameAs":["https://github.com/KarthikSubramanian07/Little-Alexandria"],"contactPoint":{"@type":"ContactPoint","contactType":"customer support","url":"https://little-alexandria.pages.dev/contact","availableLanguage":"en"}},{"@type":"WebSite","@id":"https://little-alexandria.pages.dev/#website","name":"Little Alexandria","url":"https://little-alexandria.pages.dev/","publisher":{"@id":"https://little-alexandria.pages.dev/#organization"}},{"@type":"WebApplication","name":"Little Alexandria","url":"https://little-alexandria.pages.dev/","description":"A warm, hand-drawn home for the books you want to read, are reading, and have loved. Shelve books, keep notes, and watch your reading garden grow.","applicationCategory":"LifestyleApplication","operatingSystem":"Web","keywords":"reading tracker, bookshelf, reading garden, reading goal","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://little-alexandria.pages.dev/#organization"}}]}</script>
+    <!-- /page:head -->
     <meta name="theme-color" content="#f3ecdd" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#16110d" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -17,35 +22,30 @@
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Little Alexandria" />
-    <meta property="og:title" content="Little Alexandria · A bookshelf that feels like yours" />
-    <meta
-      property="og:description"
-      content="Shelve your books, keep your notes, and grow a hand-drawn reading garden, one finished book at a time."
-    />
-    <meta property="og:url" content="https://little-alexandria.pages.dev/" />
     <meta property="og:image" content="https://little-alexandria.pages.dev/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Little Alexandria",
-        "url": "https://little-alexandria.pages.dev/",
-        "applicationCategory": "LifestyleApplication",
-        "operatingSystem": "Web",
-        "description": "A warm, hand-drawn personal bookshelf and reading tracker.",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-      }
-    </script>
+    <style>
+      /* The plain-HTML copy of each page, for crawlers and readers without JavaScript. */
+      .js .prerendered { display: none; }
+      .prerendered { display: block; max-width: 44rem; margin: 0 auto; padding: 3rem 1.25rem; line-height: 1.6; }
+      .prerendered h1 { font-size: 2.25rem; line-height: 1.1; margin: 0.5rem 0 1rem; }
+      .prerendered h2 { font-size: 1.5rem; margin: 2rem 0 0.5rem; }
+      .prerendered h3 { font-size: 1.2rem; margin: 1.5rem 0 0.25rem; }
+      .prerendered p, .prerendered ul, .prerendered pre { margin: 0 0 1rem; }
+      .prerendered ul { padding-left: 1.25rem; list-style: disc; }
+      .prerendered a { text-decoration: underline; }
+      .prerendered pre { overflow-x: auto; padding: 0.75rem 1rem; border-radius: 0.75rem; background: var(--paper-deep); }
+      noscript { display: block; max-width: 44rem; margin: 0 auto 3rem; padding: 0 1.25rem; }
+    </style>
     <!-- Applies the saved theme before first paint, so dark mode never flashes cream. -->
     <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>
-    <noscript>Little Alexandria needs JavaScript to open its doors.</noscript>
+    <noscript>Your shelves need JavaScript to open. Everything above reads fine without it.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

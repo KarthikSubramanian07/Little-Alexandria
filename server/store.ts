@@ -259,6 +259,17 @@ export function createStore(db: D1Database) {
       return (await getUser(userId))!
     },
 
+    /** Every shared library's handle, newest first, for the sitemap. */
+    async publicHandles(limit = 5000) {
+      const { results } = await db
+        .prepare(
+          'SELECT handle FROM users WHERE is_public = 1 AND handle IS NOT NULL ORDER BY created_at DESC LIMIT ?',
+        )
+        .bind(limit)
+        .all<{ handle: string }>()
+      return results.map((row) => row.handle)
+    },
+
     /** A shared library, or null when it doesn't exist or isn't shared. Notes stay private. */
     async publicLibrary(handle: string) {
       const row = await db

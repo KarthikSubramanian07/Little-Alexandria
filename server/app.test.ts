@@ -22,8 +22,11 @@ beforeEach(async () => {
 /** A tiny client that carries one reader's cookie, like a browser tab would. */
 function reader() {
   let cookie = ''
+  // Each reader is its own client, as far as rate limits go.
+  const address = `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
   return async (path: string, init: RequestInit = {}): Promise<JsonResponse> => {
     const headers = new Headers(init.headers)
+    headers.set('CF-Connecting-IP', address)
     if (cookie) headers.set('Cookie', cookie)
     if (init.method && init.method !== 'GET') headers.set('Origin', ORIGIN)
     if (init.body) headers.set('Content-Type', 'application/json')

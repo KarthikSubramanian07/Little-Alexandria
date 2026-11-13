@@ -29,7 +29,7 @@ test('search, shelve, rate, finish, and remove a book', async ({ page }) => {
 
   // Open the book's card.
   await shelf(page, 'Want to Read')
-    .getByRole('button', { name: /^Open A Wizard of Earthsea/ })
+    .getByRole('button', { name: /^A Wizard of Earthsea\b/ })
     .click()
   const card = page.getByRole('dialog')
   await expect(card.getByRole('heading', { name: 'A Wizard of Earthsea' })).toBeVisible()
@@ -47,11 +47,11 @@ test('search, shelve, rate, finish, and remove a book', async ({ page }) => {
   await page.keyboard.press('Escape')
   await expect(page).toHaveURL(/\/library$/)
   const read = shelf(page, 'Read')
-  await expect(read.getByRole('button', { name: /^Open A Wizard of Earthsea/ })).toBeVisible()
+  await expect(read.getByRole('button', { name: /^A Wizard of Earthsea\b/ })).toBeVisible()
 
   // Everything survived a reload.
   await page.reload()
-  await read.getByRole('button', { name: /^Open A Wizard of Earthsea/ }).click()
+  await read.getByRole('button', { name: /^A Wizard of Earthsea\b/ }).click()
   await expect(page.getByRole('dialog').getByRole('radio', { name: /4 stars/ })).toHaveAttribute(
     'aria-checked',
     'true',
@@ -62,9 +62,9 @@ test('search, shelve, rate, finish, and remove a book', async ({ page }) => {
 
   // Take it off the shelves, then undo.
   await page.getByRole('dialog').getByRole('button', { name: 'Take off the shelves' }).click()
-  await expect(read.getByRole('button', { name: /^Open A Wizard of Earthsea/ })).toHaveCount(0)
+  await expect(read.getByRole('button', { name: /^A Wizard of Earthsea\b/ })).toHaveCount(0)
   await page.getByRole('button', { name: 'Undo' }).click()
-  await expect(read.getByRole('button', { name: /^Open A Wizard of Earthsea/ })).toBeVisible()
+  await expect(read.getByRole('button', { name: /^A Wizard of Earthsea\b/ })).toBeVisible()
 })
 
 test('the move menu carries a book between shelves', async ({ page }) => {
@@ -75,9 +75,9 @@ test('the move menu carries a book between shelves', async ({ page }) => {
   await want.getByRole('button', { name: 'Move or remove Dune' }).click()
   await page.getByRole('menuitem', { name: 'Currently Reading' }).click()
   await expect(
-    shelf(page, 'Currently Reading').getByRole('button', { name: /^Open Dune/ }),
+    shelf(page, 'Currently Reading').getByRole('button', { name: /^Dune\b/ }),
   ).toBeVisible()
-  await expect(want.getByRole('button', { name: /^Open Dune/ })).toHaveCount(0)
+  await expect(want.getByRole('button', { name: /^Dune\b/ })).toHaveCount(0)
 })
 
 test('⌘K opens search from anywhere', async ({ page, isMobile }) => {

@@ -44,7 +44,8 @@
   --card: #fbf7ee;
   --ink: #2a1e16;
   --ink-soft: #5b4a3c;
-  --ink-faint: #8a7765;
+  --ink-faint: #735f4c;
+  --line-control: #8f7c66;
   --line: rgb(42 30 22 / 0.13);
   --line-strong: rgb(42 30 22 / 0.24);
   --moss: #3e5a3a;
@@ -71,7 +72,8 @@
   --card: #211a14;
   --ink: #f0e5d0;
   --ink-soft: #c2b096;
-  --ink-faint: #8d7b65;
+  --ink-faint: #a8957d;
+  --line-control: #857360;
   --line: rgb(240 229 208 / 0.11);
   --line-strong: rgb(240 229 208 / 0.22);
   --moss: #9dbb93;
@@ -99,7 +101,8 @@
     --card: #211a14;
     --ink: #f0e5d0;
     --ink-soft: #c2b096;
-    --ink-faint: #8d7b65;
+    --ink-faint: #a8957d;
+    --line-control: #857360;
     --line: rgb(240 229 208 / 0.11);
     --line-strong: rgb(240 229 208 / 0.22);
     --moss: #9dbb93;
@@ -127,6 +130,7 @@
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-ink-faint: var(--ink-faint);
+  --color-line-control: var(--line-control);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-moss: var(--moss);
@@ -187,6 +191,13 @@ body::after {
   outline: 2px solid var(--moss);
   outline-offset: 3px;
   border-radius: 6px;
+}
+
+/* Fields that wrap their input in a styled box ring the whole box instead. */
+.field:focus-within {
+  outline: 2px solid var(--moss);
+  outline-offset: 2px;
+  border-color: var(--moss);
 }
 
 .font-display {

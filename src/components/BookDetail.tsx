@@ -277,7 +277,7 @@ function DateField({
           min={min}
           max={max}
           onChange={(event) => onChange(event.target.value || null)}
-          className="w-full rounded-xl border border-line-strong bg-card px-3 py-2 font-mono text-sm text-ink transition outline-none focus:border-moss"
+          className="w-full rounded-xl border border-line-control bg-card px-3 py-2 font-mono text-sm text-ink transition focus:border-moss"
         />
         {value && (
           <button
@@ -347,7 +347,7 @@ function NotesField({ initial, onSave }: { initial: string | null; onSave: (note
           timer.current = setTimeout(() => void flush(value), 900)
         }}
         onBlur={() => void flush(text)}
-        className="w-full resize-y rounded-xl border border-line-strong bg-card px-4 py-3 font-display text-[1.05rem] leading-relaxed text-ink transition outline-none placeholder:text-ink-faint/80 focus:border-moss"
+        className="w-full resize-y rounded-xl border border-line-control bg-card px-4 py-3 font-display text-[1.05rem] leading-relaxed text-ink transition placeholder:text-ink-faint focus:border-moss"
         style={{
           backgroundImage: 'repeating-linear-gradient(transparent 0 1.72rem, var(--line) 1.72rem calc(1.72rem + 1px))',
           backgroundPositionY: '0.95rem',

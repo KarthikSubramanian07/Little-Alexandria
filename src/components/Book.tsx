@@ -29,10 +29,22 @@ interface CoverProps {
   className?: string
   /** Turn the book a little so its spine and pages show. */
   tilt?: number
+  /**
+   * When the cover is itself a control (a book on the shelf), it names that
+   * control: the picture gets alt text, and a cloth cover's printed title counts.
+   */
+  labelled?: boolean
 }
 
 /** The cover itself: the publisher's art, or a cloth binding we set in type. */
-export function Cover({ book, entryId, size = 'md', className, tilt = 0 }: CoverProps) {
+export function Cover({
+  book,
+  entryId,
+  size = 'md',
+  className,
+  tilt = 0,
+  labelled = false,
+}: CoverProps) {
   const [failed, setFailed] = useState(false)
   const [spine, setSpine] = useState(book.spineColor)
   const { w, h } = SIZES[size]
@@ -58,7 +70,7 @@ export function Cover({ book, entryId, size = 'md', className, tilt = 0 }: Cover
         {showImage ? (
           <img
             src={book.coverUrl!}
-            alt=""
+            alt={labelled ? `${book.title}${book.authors[0] ? `, ${book.authors[0]}` : ''}` : ''}
             draggable={false}
             loading="lazy"
             decoding="async"
@@ -74,7 +86,7 @@ export function Cover({ book, entryId, size = 'md', className, tilt = 0 }: Cover
             }}
           />
         ) : (
-          <ClothCover book={book} color={cloth} size={size} />
+          <ClothCover book={book} color={cloth} size={size} labelled={labelled} />
         )}
       </div>
     </div>
@@ -82,10 +94,22 @@ export function Cover({ book, entryId, size = 'md', className, tilt = 0 }: Cover
 }
 
 /** A typeset cover for books the catalogues have no picture of. */
-function ClothCover({ book, color, size }: { book: BookData; color: string; size: BookSize }) {
+function ClothCover({
+  book,
+  color,
+  size,
+  labelled,
+}: {
+  book: BookData
+  color: string
+  size: BookSize
+  labelled: boolean
+}) {
   const ink = inkOn(color)
   return (
     <div
+      // Decorative unless it names a control; elsewhere the page already says the title.
+      aria-hidden={labelled ? undefined : true}
       className="flex h-full w-full flex-col justify-between p-[9%] text-center"
       style={{
         color: ink,
@@ -100,7 +124,9 @@ function ClothCover({ book, color, size }: { book: BookData; color: string; size
         )}
       >
         {book.title}
-      </p>
+        {/* Read aloud as "Title, Author", the same as a picture cover's alt text. */}
+        <span className="sr-only">,</span>
+      </p>{' '}
       <p
         className={clsx(
           'font-sans tracking-wide uppercase opacity-80',
@@ -161,7 +187,9 @@ export function ShelfBook({
         aria-hidden={hidden || undefined}
         tabIndex={hidden ? -1 : undefined}
         onClick={onOpen}
-        aria-label={`Open ${book.title}${book.authors[0] ? ` by ${book.authors[0]}` : ''}`}
+        // Named by the cover itself (its printed title, or the picture's alt text),
+        // so speech input can say exactly what it sees.
+        aria-haspopup="dialog"
         className="group absolute inset-0 block cursor-pointer rounded-sm outline-offset-4"
         style={{
           transformStyle: 'preserve-3d',
@@ -174,7 +202,7 @@ export function ShelfBook({
         animate={dragging ? { rotateZ: -4, scale: 1.06, y: -8 } : { rotateZ: 0, scale: 1, y: 0 }}
         transition={settle}
       >
-        <Cover book={book} entryId={entryId} />
+        <Cover book={book} entryId={entryId} labelled />
       </motion.button>
     </div>
   )
