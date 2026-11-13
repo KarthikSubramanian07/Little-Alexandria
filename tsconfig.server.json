@@ -7,7 +7,7 @@
     "outDir": "node_modules/.tmp/server",
     "tsBuildInfoFile": "node_modules/.tmp/server.tsbuildinfo",
     "lib": ["ES2023"],
-    "types": ["@cloudflare/workers-types"]
+    "types": ["@cloudflare/workers-types", "node"]
   },
-  "include": ["server", "functions", "shared"]
+  "include": ["server", "functions", "shared", "scripts/check-import.ts"]
 }
