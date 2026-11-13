@@ -46,6 +46,16 @@ const add = (call: ReturnType<typeof reader>, sourceId: string, shelf = 'want_to
     body: JSON.stringify({ source: 'fixture', sourceId, shelf, today: '2026-11-13' }),
   })
 
+describe('safeNext', () => {
+  it('keeps same-site paths and refuses everything else', async () => {
+    const { safeNext } = await import('./auth')
+    expect(safeNext('/u/karthik?book=1')).toBe('/u/karthik?book=1')
+    for (const evil of ['//evil.com', '/\\evil.com', 'https://evil.com', '/\tevil', undefined]) {
+      expect(safeNext(evil)).toBe('/library')
+    }
+  })
+})
+
 describe('auth', () => {
   it('reports no user before signing in', async () => {
     const response = await reader()('/api/auth/me')
