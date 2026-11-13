@@ -41,9 +41,12 @@ export function MiniBook({ result, index = 0 }: { result: SearchResult; index?: 
             disabled={add.isPending}
             onClick={() => add.mutate({ result, shelf: 'want_to_read' })}
             className="mt-1.5 self-start rounded-full border border-line-strong px-2.5 py-0.5 text-xs font-medium transition hover:border-moss hover:bg-moss hover:text-on-moss disabled:opacity-50"
-            aria-label={`Add ${result.title} to Want to Read`}
+            aria-label={`Want to read: ${result.title}`}
           >
-            + Want to read
+            <svg viewBox="0 0 12 12" className="mr-1 inline size-2.5 align-[-1px]" aria-hidden>
+              <path d="M6 1.5v9M1.5 6h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            Want to read
           </motion.button>
         )}
       </AnimatePresence>

@@ -148,7 +148,7 @@ export function GoalPanel({ stats }: { stats: ReadingStats }) {
               autoFocus
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
-              className="w-24 rounded-xl border border-line-strong bg-paper px-3 py-2 font-mono text-lg outline-none focus:border-moss"
+              className="w-24 rounded-xl border border-line-control bg-paper px-3 py-2 font-mono text-lg focus:border-moss"
             />
             <span className="font-hand text-lg text-ink-soft">books</span>
             <button type="submit" className="rounded-full bg-moss px-4 py-2 text-sm font-medium text-on-moss active:scale-95">

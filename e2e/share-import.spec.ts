@@ -9,7 +9,7 @@ test('a shared library is visible to strangers, without notes', async ({
   await signIn(page)
   await shelveBook(page, 'circe', 'Circe', 'Read')
   await shelf(page, 'Read')
-    .getByRole('button', { name: /^Open Circe/ })
+    .getByRole('button', { name: /^Circe\b/ })
     .click()
   await page
     .getByRole('dialog')
@@ -34,7 +34,7 @@ test('a shared library is visible to strangers, without notes', async ({
   await visit.goto(`/u/${handle}`)
   await expect(visit.getByRole('heading', { name: 'Guest Reader' })).toBeVisible()
   await expect(visit.getByRole('link', { name: /start your own library/i }).first()).toBeVisible()
-  await visit.getByRole('button', { name: /^Open Circe/ }).click()
+  await visit.getByRole('button', { name: 'Circe, Madeline Miller' }).click()
   await expect(visit.getByRole('dialog').getByText(/on guest’s read shelf/i)).toBeVisible()
   await expect(visit.getByText('my secret thoughts')).toHaveCount(0)
   await stranger.close()
@@ -73,12 +73,12 @@ test('importing a reading list fills the shelves', async ({ page }) => {
   await expect(dialog.getByText('A Book Nobody Wrote')).toBeVisible()
   await page.keyboard.press('Escape')
 
-  await expect(shelf(page, 'Read').getByRole('button', { name: /^Open Dune/ })).toBeVisible()
+  await expect(shelf(page, 'Read').getByRole('button', { name: /^Dune\b/ })).toBeVisible()
   await expect(
-    shelf(page, 'Want to Read').getByRole('button', { name: /^Open The Hobbit/ }),
+    shelf(page, 'Want to Read').getByRole('button', { name: /^The Hobbit\b/ }),
   ).toBeVisible()
   await shelf(page, 'Read')
-    .getByRole('button', { name: /^Open Dune/ })
+    .getByRole('button', { name: /^Dune\b/ })
     .click()
   await expect(page.getByRole('dialog').getByText('sometime in 2025')).toBeVisible()
 })

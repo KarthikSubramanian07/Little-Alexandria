@@ -107,7 +107,7 @@ export function AppShell({
               <button
                 type="button"
                 onClick={onSearch}
-                aria-label="Find a book"
+                aria-keyshortcuts="Meta+K Control+K"
                 className="group flex items-center gap-2 rounded-full border border-line-strong bg-card py-2 pr-2 pl-2 text-sm text-ink-soft transition hover:border-moss hover:text-ink active:scale-[0.98] sm:py-1.5 sm:pl-4"
               >
                 <svg viewBox="0 0 20 20" className="size-4" aria-hidden>
@@ -126,8 +126,11 @@ export function AppShell({
                     strokeLinecap="round"
                   />
                 </svg>
-                <span className="hidden sm:inline">Find a book</span>
-                <kbd className="hidden rounded-md border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink-faint md:inline">
+                <span className="sr-only sm:not-sr-only">Find a book</span>
+                <kbd
+                  aria-hidden
+                  className="hidden rounded-md border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink-faint md:inline"
+                >
                   ⌘K
                 </kbd>
               </button>

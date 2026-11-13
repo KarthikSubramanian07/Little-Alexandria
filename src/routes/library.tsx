@@ -75,7 +75,7 @@ function LibraryPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {total > 8 && (
-            <label className="flex items-center gap-2 rounded-full border border-line-strong bg-card px-3.5 py-1.5 focus-within:border-moss">
+            <label className="field flex items-center gap-2 rounded-full border border-line-control bg-card px-3.5 py-1.5">
               <svg viewBox="0 0 20 20" className="size-4 text-ink-faint" aria-hidden>
                 <path d="M3 5h14M6 10h8M9 15h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>

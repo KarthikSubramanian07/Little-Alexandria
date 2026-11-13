@@ -96,7 +96,7 @@ export function ShareDialog({ user, open, onOpenChange }: { user: User; open: bo
               Your address
             </label>
             <div className="mt-1 flex items-center gap-2">
-              <div className="flex min-w-0 flex-1 items-center rounded-xl border border-line-strong bg-paper px-3 focus-within:border-moss">
+              <div className="flex min-w-0 flex-1 items-center field rounded-xl border border-line-control bg-paper px-3">
                 <span className="shrink-0 font-mono text-sm text-ink-faint">/u/</span>
                 <input
                   id="handle"

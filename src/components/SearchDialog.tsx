@@ -68,7 +68,7 @@ export function SearchDialog({ open, onOpenChange, shelf, onShelfChange, initial
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by title, author, or ISBN"
               aria-label="Search for a book"
-              className="min-w-0 flex-1 bg-transparent font-display text-xl outline-none placeholder:text-ink-faint/80"
+              className="min-w-0 flex-1 bg-transparent font-display text-xl outline-none placeholder:text-ink-faint"
               spellCheck={false}
             />
             {waiting && <Spinner />}
@@ -195,9 +195,15 @@ function ResultRow({
             onClick={() => add.mutate({ result, shelf })}
             whileTap={{ scale: 0.92 }}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line-strong px-3.5 py-1.5 text-sm font-medium transition-colors hover:border-moss hover:bg-moss hover:text-on-moss disabled:opacity-60"
-            aria-label={`Add ${result.title} to ${SHELF_LABELS[shelf]}`}
+            aria-label={`Shelve ${result.title} on ${SHELF_LABELS[shelf]}`}
           >
-            {add.isPending ? <Spinner small /> : <span aria-hidden className="text-base leading-none">+</span>}
+            {add.isPending ? (
+              <Spinner small />
+            ) : (
+              <svg viewBox="0 0 12 12" className="size-3" aria-hidden>
+                <path d="M6 1.5v9M1.5 6h9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            )}
             Shelve
           </motion.button>
         )}

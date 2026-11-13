@@ -29,10 +29,10 @@ export async function shelveBook(
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('button', { name: target, exact: true }).click()
   await dialog.getByLabel('Search for a book').fill(query)
-  await dialog.getByRole('button', { name: `Add ${title} to ${target}` }).click()
+  await dialog.getByRole('button', { name: `Shelve ${title} on ${target}` }).click()
   await expect(dialog.getByRole('link', { name: target })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(
-    shelf(page, target).getByRole('button', { name: new RegExp(`^Open ${title}`) }),
+    shelf(page, target).getByRole('button', { name: new RegExp(`^${title}\\b`) }),
   ).toBeVisible()
 }
