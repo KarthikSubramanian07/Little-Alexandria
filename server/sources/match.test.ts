@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { authorMatches, bestMatch, normalizeTitle, titleSimilarity } from './match'
+import {
+  authorMatches,
+  bestMatch,
+  exactPopular,
+  normalizeTitle,
+  splitAuthors,
+  titleSimilarity,
+} from './match'
 
 describe('normalizeTitle', () => {
   it('drops subtitles, articles, punctuation, and accents', () => {
@@ -68,5 +75,30 @@ describe('bestMatch', () => {
   })
   it('needs a near-exact title when the author is unknown', () => {
     expect(bestMatch('The Shining', null, candidates)?.title).toBe('The Shining')
+  })
+})
+
+describe('splitAuthors', () => {
+  it('drops parentheticals and splits co-authors', () => {
+    expect(splitAuthors('James S. A. Corey (Daniel Abraham & Ty Franck)')).toEqual([
+      'James S. A. Corey',
+    ])
+    expect(splitAuthors('Chriss Voss & Tahl Raz')).toEqual(['Chriss Voss', 'Tahl Raz'])
+    expect(splitAuthors(null)).toEqual([])
+  })
+})
+
+describe('exactPopular', () => {
+  it('trusts an exact, widely published title over a wrong author', () => {
+    const candidates = [
+      { title: 'Murder on the Orient Express', authors: ['Agatha Christie'], editionCount: 240 },
+      { title: 'Murder on the Orient Express (Study Guide)', authors: ['Notes'], editionCount: 2 },
+    ]
+    expect(exactPopular('Murder on the Orient Express', candidates)?.authors).toEqual([
+      'Agatha Christie',
+    ])
+    expect(
+      exactPopular('Murder on the Orient Express', [{ ...candidates[0]!, editionCount: 2 }]),
+    ).toBeNull()
   })
 })

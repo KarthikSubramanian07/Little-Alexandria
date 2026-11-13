@@ -39,10 +39,14 @@ export function titleSimilarity(a: string, b: string): number {
 
 /** "Salena Zito & Brad Todd" -> ["Salena Zito", "Brad Todd"]. */
 export function splitAuthors(value: string | null): string[] {
-  return (value ?? '')
-    .split(/\s*(?:&|\band\b|;|,(?=\s*[A-Z][a-z]+\s+[A-Z]))\s*/)
-    .map((name) => name.trim())
-    .filter(Boolean)
+  return (
+    (value ?? '')
+      // "James S. A. Corey (Daniel Abraham & Ty Franck)": the pen name is what catalogues use.
+      .replace(/\(.*?\)/g, ' ')
+      .split(/\s*(?:&|\band\b|;|,(?=\s*[A-Z][a-z]+\s+[A-Z]))\s*/)
+      .map((name) => name.trim())
+      .filter(Boolean)
+  )
 }
 
 const surname = (name: string) =>
@@ -115,4 +119,24 @@ export function bestMatch<T extends Candidate>(
     if (!best || score > best.score) best = { candidate, score }
   }
   return best?.candidate ?? null
+}
+
+/**
+ * The last resort for a list whose author column is wrong (a blank cell that
+ * carried the previous author down): accept a widely published book whose
+ * full title matches exactly, whoever wrote it.
+ */
+export function exactPopular<T extends Candidate>(
+  title: string,
+  candidates: T[],
+  minEditions = 8,
+): T | null {
+  const wanted = fullTitle(title)
+  const exact = candidates
+    .filter(
+      (candidate) =>
+        fullTitle(candidate.title) === wanted && (candidate.editionCount ?? 0) >= minEditions,
+    )
+    .sort((a, b) => (b.editionCount ?? 0) - (a.editionCount ?? 0))
+  return exact[0] ?? null
 }

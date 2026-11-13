@@ -1,7 +1,7 @@
 import type { SearchResult } from '../../shared/types'
 import { normalizeGenres } from './genres'
 import { cleanOpenLibraryDescription, isbn13From } from './text'
-import { bestMatch, splitAuthors } from './match'
+import { bestMatch, exactPopular, splitAuthors } from './match'
 import { SourceError, type BookMetadata, type BookSourceClient } from './types'
 
 const BASE = 'https://openlibrary.org'
@@ -105,10 +105,16 @@ export async function matchOpenLibrary(row: {
   if (found) return metadataFromDoc(found)
   if (!author) return null
 
-  // 2. Free text, which survives typos and translated titles ("The Stranger" is "L'Étranger").
+  // 2. Free text, which survives translated titles ("The Stranger" is "L'Étranger").
   const loose = asCandidates(await searchDocs(`${title} ${author}`, 10))
   const fallback = bestMatch(row.title, row.author, loose)
-  return fallback ? metadataFromDoc(fallback) : null
+  if (fallback) return metadataFromDoc(fallback)
+
+  // 3. The title alone, checking the surname loosely: survives a misspelled
+  //    first name ("Octavio E. Butler") that sinks an author search.
+  const byTitle = asCandidates(await searchDocs({ title }, 12))
+  const lastTry = bestMatch(row.title, row.author, byTitle) ?? exactPopular(row.title, byTitle)
+  return lastTry ? metadataFromDoc(lastTry) : null
 }
 
 /** Fetch a work's description, for books imported without one. */

@@ -42,7 +42,7 @@ export const FIXTURE_BOOKS: BookMetadata[] = [
     description:
       'Ged was the greatest sorcerer in Earthsea, but in his youth he was the reckless Sparrowhawk. In his hunger for power and knowledge, he tampered with long-held secrets and loosed a terrible shadow upon the world.',
     genres: ['Fantasy', 'Young Adult'],
-    coverUrl: 'https://covers.openlibrary.org/b/id/13617691-L.jpg?default=false',
+    coverUrl: 'https://covers.openlibrary.org/b/id/15255407-L.jpg?default=false',
     isbn13: null,
   },
   {
