@@ -1,4 +1,13 @@
-import type { LibraryEntry, ReadingStats, SearchResult, Shelf, User } from '../../shared/types'
+import type {
+  ImportOutcome,
+  ImportRow,
+  LibraryEntry,
+  PublicProfile,
+  ReadingStats,
+  SearchResult,
+  Shelf,
+  User,
+} from '../../shared/types'
 
 export class ApiError extends Error {
   constructor(
@@ -38,6 +47,32 @@ export type EntryPatch = Partial<
   Pick<LibraryEntry, 'shelf' | 'position' | 'rating' | 'notes' | 'startedAt' | 'finishedAt'>
 >
 
+export interface Adaptation {
+  title: string
+  year: number | null
+  kind: 'film' | 'series' | 'other'
+  url: string
+}
+
+export interface RelatedResponse {
+  description: string | null
+  byAuthor: SearchResult[]
+  similar: SearchResult[]
+  adaptations: Adaptation[]
+}
+
+export interface SharedLibrary {
+  profile: PublicProfile
+  entries: LibraryEntry[]
+  stats: ReadingStats
+}
+
+export interface DiscoverSection {
+  kind: 'author' | 'genre'
+  title: string
+  books: SearchResult[]
+}
+
 export const api = {
   me: () => request<{ user: User | null }>('/auth/me'),
   providers: () => request<{ google: boolean; guest: boolean }>('/auth/providers'),
@@ -56,4 +91,11 @@ export const api = {
   setGoal: (year: number, target: number) =>
     request<{ year: number; target: number }>(`/goals/${year}`, json('PUT', { target })),
   stats: (year: number) => request<ReadingStats>(`/stats?year=${year}`),
+  updateProfile: (changes: { handle?: string; isPublic?: boolean }) =>
+    request<{ user: User }>('/me', json('PATCH', changes)),
+  shared: (handle: string) => request<SharedLibrary>(`/u/${encodeURIComponent(handle)}`),
+  importBatch: (rows: ImportRow[], today: string) =>
+    request<{ outcomes: ImportOutcome[] }>('/import', json('POST', { rows, today })),
+  related: (entryId: string) => request<RelatedResponse>(`/library/${entryId}/related`),
+  discover: () => request<{ sections: DiscoverSection[] }>('/discover'),
 }
