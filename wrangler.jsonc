@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "little-alexandria",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "little-alexandria",
+      "database_id": "4f302beb-b202-4b65-829f-28772db43668",
+      "migrations_dir": "migrations",
+    },
+  ],
+}

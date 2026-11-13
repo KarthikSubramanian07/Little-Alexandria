@@ -1,0 +1,8 @@
+# Copy to .dev.vars for local development.
+# Google OAuth client (Google Cloud console -> APIs & Services -> Credentials).
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+# Optional. Without it, search uses Open Library only.
+GOOGLE_BOOKS_API_KEY=
+# Local only: enables the "Continue as a guest reader" dev sign-in. Never set in production.
+DEV_LOGIN=1

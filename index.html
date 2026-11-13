@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Little Alexandria · A bookshelf that feels like yours</title>
+    <meta
+      name="description"
+      content="A warm, hand-drawn home for the books you want to read, are reading, and have loved. Shelve books, keep notes, and watch your reading garden grow."
+    />
+    <link rel="canonical" href="https://little-alexandria.pages.dev/" />
+    <meta name="theme-color" content="#f3ecdd" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#16110d" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Little Alexandria" />
+    <meta property="og:title" content="Little Alexandria · A bookshelf that feels like yours" />
+    <meta
+      property="og:description"
+      content="Shelve your books, keep your notes, and grow a hand-drawn reading garden, one finished book at a time."
+    />
+    <meta property="og:url" content="https://little-alexandria.pages.dev/" />
+    <meta property="og:image" content="https://little-alexandria.pages.dev/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Little Alexandria",
+        "url": "https://little-alexandria.pages.dev/",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Web",
+        "description": "A warm, hand-drawn personal bookshelf and reading tracker.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+    <!-- Applies the saved theme before first paint, so dark mode never flashes cream. -->
+    <script src="/theme-init.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Little Alexandria needs JavaScript to open its doors.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
