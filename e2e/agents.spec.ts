@@ -26,6 +26,7 @@ test.describe('for agents and crawlers', () => {
     expect(missing.headers()['content-type']).toBe('text/markdown; charset=utf-8')
     expect(await missing.text()).toContain('/llms.txt')
     expect((await request.get('/nope.php')).status()).toBe(404)
+    expect((await request.get('/assets/missing-chunk.js')).status()).toBe(404)
   })
 
   test('the machine-readable files are served', async ({ request }) => {
