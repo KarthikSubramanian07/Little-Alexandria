@@ -4,12 +4,12 @@ import { clsx } from 'clsx'
 import { motion } from 'motion/react'
 import { AlertDialog, DropdownMenu } from 'radix-ui'
 import { useEffect, useState, type ReactNode } from 'react'
-import { SITE } from '../../shared/site'
 import type { User } from '../../shared/types'
 import { snappy } from '../lib/motion'
 import { api } from '../lib/api'
 import { useSignOut } from '../lib/queries'
 import { useTheme, type ThemeChoice } from '../lib/theme'
+import { SiteFooter } from './DocPage'
 import { ShareDialog } from './ShareDialog'
 import { Wordmark } from './Wordmark'
 
@@ -168,6 +168,9 @@ export function AppShell({
       <main id="main" className="mx-auto max-w-6xl px-4 pt-6 sm:px-8 sm:pt-10">
         {children}
       </main>
+      <div className="mx-auto mt-16 max-w-6xl px-4 sm:px-8">
+        <SiteFooter />
+      </div>
 
       {/* On phones the pages live in a tab bar, where thumbs already are. */}
       <nav
@@ -308,12 +311,6 @@ function UserMenu({ user, onShare }: { user: User; onShare: () => void }) {
             <DropdownMenu.Item className={menuItem} asChild>
               <a href="/api/export" download>
                 Download my library <span className="text-ink-faint">(CSV)</span>
-              </a>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item className={menuItem} asChild>
-              <a href={SITE.coffee} target="_blank" rel="noreferrer">
-                Buy me a coffee <span className="text-ink-faint">(support the library)</span>
-                <span className="sr-only"> (opens in a new tab)</span>
               </a>
             </DropdownMenu.Item>
             <DropdownMenu.Item
