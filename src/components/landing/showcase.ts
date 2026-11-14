@@ -3,9 +3,9 @@
 // everyone's library. Offline builds fall back to the typeset cloth covers.
 import type { Book } from '../../../shared/types'
 
-const SHOWCASE: Array<
-  [title: string, author: string, coverId: number, cloth: string, pages: number]
-> = [
+type Jacket = [title: string, author: string, coverId: number, cloth: string, pages: number]
+
+const SHOWCASE: Jacket[] = [
   ['The Hobbit', 'J. R. R. Tolkien', 14627509, '#c4762f', 310],
   ['Circe', 'Madeline Miller', 8739376, '#d08a2c', 393],
   ['Piranesi', 'Susanna Clarke', 10226290, '#2f3b6b', 245],
@@ -25,7 +25,32 @@ const SHOWCASE: Array<
   ['A Little Life', 'Hanya Yanagihara', 12065783, '#3a3a3a', 720],
 ]
 
-export const SHOWCASE_BOOKS: Book[] = SHOWCASE.map(([title, author, coverId, cloth, pages]) => ({
+// The new-arrivals cart under the bookcase: none of these are on the shelves
+// above it, so the page shows two dozen more books, not the same ones twice.
+const NEW_ARRIVALS: Jacket[] = [
+  ['The Night Circus', 'Erin Morgenstern', 8773134, '#1c1c1c', 512],
+  ['Klara and the Sun', 'Kazuo Ishiguro', 10648686, '#ac3f27', 334],
+  ['The Great Gatsby', 'F. Scott Fitzgerald', 10502606, '#1f4f7a', 185],
+  ['Little Women', 'Louisa May Alcott', 8775559, '#a83a2a', 422],
+  ['Project Hail Mary', 'Andy Weir', 11200092, '#22201d', 496],
+  ['The Bell Jar', 'Sylvia Plath', 8477115, '#d9d4c4', 262],
+  ['Babel', 'R. F. Kuang', 13154506, '#3a3a3a', 577],
+  ['Lessons in Chemistry', 'Bonnie Garmus', 12725772, '#e8875a', 464],
+  ['The Left Hand of Darkness', 'Ursula K. Le Guin', 10618463, '#2f6f8f', 304],
+  ['Rebecca', 'Daphne du Maurier', 8767961, '#b0201c', 386],
+  ['Tomorrow, and Tomorrow, and Tomorrow', 'Gabrielle Zevin', 12859975, '#2c5c8a', 460],
+  ['The Overstory', 'Richard Powers', 8758252, '#4a6b3a', 531],
+  ['Mrs Dalloway', 'Virginia Woolf', 6397580, '#3f6b5a', 224],
+  ['The Midnight Library', 'Matt Haig', 10313767, '#1d2b45', 304],
+  ['Never Let Me Go', 'Kazuo Ishiguro', 745375, '#2f5a2a', 319],
+  ['Americanah', 'Chimamanda Ngozi Adichie', 8474037, '#a88a66', 592],
+  ['The Goldfinch', 'Donna Tartt', 8771366, '#ece6da', 862],
+  ['Cloud Atlas', 'David Mitchell', 6714077, '#5f6d36', 537],
+  ['Pride and Prejudice', 'Jane Austen', 13893906, '#e89a2a', 351],
+  ['The Bear and the Nightingale', 'Katherine Arden', 11946359, '#1b2433', 368],
+]
+
+const toBook = ([title, author, coverId, cloth, pages]: Jacket): Book => ({
   id: `showcase:${coverId}`,
   source: 'openlibrary',
   sourceId: String(coverId),
@@ -39,7 +64,10 @@ export const SHOWCASE_BOOKS: Book[] = SHOWCASE.map(([title, author, coverId, clo
   coverUrl: `/api/cover?src=${encodeURIComponent(`https://covers.openlibrary.org/b/id/${coverId}-L.jpg?default=false`)}`,
   isbn13: null,
   spineColor: cloth,
-}))
+})
+
+export const SHOWCASE_BOOKS: Book[] = SHOWCASE.map(toBook)
+export const NEW_ARRIVAL_BOOKS: Book[] = NEW_ARRIVALS.map(toBook)
 
 const luminance = (hex: string) => {
   const [r, g, b] = [1, 3, 5].map((i) => {

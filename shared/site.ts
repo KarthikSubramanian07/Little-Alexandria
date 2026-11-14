@@ -10,6 +10,8 @@ export const SITE = {
     'A warm, hand-drawn home for the books you want to read, are reading, and have loved. Shelve books, keep notes, and watch your reading garden grow.',
   github: 'https://github.com/KarthikSubramanian07/Little-Alexandria',
   issues: 'https://github.com/KarthikSubramanian07/Little-Alexandria/issues',
+  /** Where readers who like the site can tip the person who makes it. */
+  coffee: 'https://buymeacoffee.com/winnerkarthik',
   /** Product terms, used for meta keywords and JSON-LD. Each one appears on the home page. */
   keywords: ['reading tracker', 'bookshelf', 'reading garden', 'reading goal'],
 } as const
@@ -59,6 +61,7 @@ export const FOOTER_LINKS = [
   { label: 'Contact', href: '/contact' },
   { label: 'API', href: '/docs' },
   { label: 'GitHub', href: SITE.github },
+  { label: 'Buy me a coffee', href: SITE.coffee },
 ] as const
 
 export const HOME_DOC: SiteDoc = {
@@ -116,7 +119,7 @@ export const ABOUT_DOC: SiteDoc = {
     { type: 'h2', text: 'Who makes it' },
     {
       type: 'p',
-      text: `Little Alexandria is an independent project, built and maintained by one developer. It is not a company and has no investors, advertisers, or partners. The [source code is public on GitHub](${SITE.github}) under the MIT licence, so anyone can read exactly how it works, suggest changes, or run their own copy.`,
+      text: `Little Alexandria is an independent project, built and maintained by one developer. It is not a company and has no investors, advertisers, or partners. The [source code is public on GitHub](${SITE.github}) under the MIT licence, so anyone can read exactly how it works, suggest changes, or run their own copy. It is free, with no ads and no paid tier; if it earns a place in your reading life, you can [buy me a coffee](${SITE.coffee}).`,
     },
     { type: 'h2', text: 'How it works' },
     {

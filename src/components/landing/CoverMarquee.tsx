@@ -2,7 +2,7 @@
 // when you walk past it. Pauses under the pointer; still when motion is reduced.
 import { useState } from 'react'
 import type { Book } from '../../../shared/types'
-import { letteringOn, SHOWCASE_BOOKS, thumbnailOf } from './showcase'
+import { letteringOn, NEW_ARRIVAL_BOOKS, thumbnailOf } from './showcase'
 
 function Jacket({ book, index }: { book: Book; index: number }) {
   const [failed, setFailed] = useState(false)
@@ -38,7 +38,7 @@ function Jacket({ book, index }: { book: Book; index: number }) {
 }
 
 export function CoverMarquee() {
-  const books = [...SHOWCASE_BOOKS.slice(3), ...SHOWCASE_BOOKS.slice(0, 3)]
+  const books = NEW_ARRIVAL_BOOKS
   return (
     <section
       aria-labelledby="stacks-heading"
