@@ -303,6 +303,7 @@ export const DOCS_DOC: SiteDoc = {
         '`PATCH /api/library/{id}`: move a book, rate it, date it, or write notes.',
         '`DELETE /api/library/{id}`: take a book off your shelves.',
         '`GET /api/library/{id}/related`: more by the author, similar books, and adaptations.',
+        '`GET /api/books/{id}/about`: reading time, readers’ ratings, the opening lines, the story, and the author. Public.',
         '`PUT /api/goals/{year}`: set a reading goal.',
         '`GET /api/stats?year={year}`: books and pages read, by month and genre.',
         '`GET /api/discover`: recommendations from your favourite authors and genres.',

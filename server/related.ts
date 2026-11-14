@@ -50,7 +50,7 @@ const looseKey = (title: string, author: string | undefined) =>
   `${normalizeTitle(title)}|${(author ?? '').toLowerCase().split(' ').at(-1) ?? ''}`
 
 /** Subjects specific enough to recommend from: no "Fiction", no NYT list tags. */
-function usefulSubjects(subjects: readonly string[]): string[] {
+export function usefulSubjects(subjects: readonly string[]): string[] {
   const generic =
     /^(fiction|literature|novel|english literature|american literature|large type books|accessible book|protected daisy|in library|general|reading level|new york times|nyt:|award:|form:|genre:)/i
   return subjects.filter(

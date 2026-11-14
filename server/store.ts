@@ -4,6 +4,7 @@
 import { frontOf } from '../shared/positions'
 import { datesForShelf } from '../shared/shelf-rules'
 import type { Book, LibraryEntry, PublicProfile, Shelf, User } from '../shared/types'
+import { cleanOpenLibraryDescription } from './sources/text'
 import { LibraryError, applyPatch, type EntryPatch } from './library'
 
 export const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30
@@ -72,7 +73,8 @@ const toEntry = (row: EntryRow): LibraryEntry => ({
     authors: JSON.parse(row.authors) as string[],
     publishedYear: row.published_year,
     pageCount: row.page_count,
-    description: row.description,
+    // Older rows kept Markdown and citation marks; cleaning is idempotent.
+    description: cleanOpenLibraryDescription(row.description),
     genres: JSON.parse(row.genres) as string[],
     coverUrl: row.cover_url,
     isbn13: row.isbn13,
@@ -439,6 +441,49 @@ export function createStore(db: D1Database) {
         .prepare('UPDATE books SET spine_color = ? WHERE id = ? AND spine_color IS NULL')
         .bind(color, entry.book.id)
         .run()
+    },
+
+    /** One book from the shared catalogue, or null when nobody has shelved it. */
+    async getBook(id: string): Promise<Book | null> {
+      const row = await db
+        .prepare(
+          `SELECT id, source, source_id, title, subtitle, authors, published_year, page_count,
+             description, genres, cover_url, isbn13, spine_color
+           FROM books WHERE id = ?`,
+        )
+        .bind(id)
+        .first<{
+          id: string
+          source: Book['source']
+          source_id: string
+          title: string
+          subtitle: string | null
+          authors: string
+          published_year: number | null
+          page_count: number | null
+          description: string | null
+          genres: string
+          cover_url: string | null
+          isbn13: string | null
+          spine_color: string | null
+        }>()
+      if (!row) return null
+      return {
+        id: row.id,
+        source: row.source,
+        sourceId: row.source_id,
+        title: row.title,
+        subtitle: row.subtitle,
+        authors: JSON.parse(row.authors) as string[],
+        publishedYear: row.published_year,
+        pageCount: row.page_count,
+        // Older rows kept Markdown and citation marks; cleaning is idempotent.
+        description: cleanOpenLibraryDescription(row.description),
+        genres: JSON.parse(row.genres) as string[],
+        coverUrl: row.cover_url,
+        isbn13: row.isbn13,
+        spineColor: row.spine_color,
+      }
     },
 
     /** Fill in a catalogue description the import skipped. Never overwrites one. */

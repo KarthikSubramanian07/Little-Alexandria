@@ -204,6 +204,87 @@ const schemas: Record<string, Json> = {
       'thumbnailUrl',
     ],
   },
+  BookAbout: {
+    type: 'object',
+    description:
+      'What the open catalogues know about a book. Open Library supplies most of it; Wikipedia fills in biographies and descriptions it lacks. Any field can be empty.',
+    properties: {
+      description: nullable({
+        type: 'string',
+        description: 'Only when the book’s own record has none.',
+      }),
+      opening: nullable({ type: 'string', description: 'The first lines of the book.' }),
+      readingMinutes: nullable({
+        type: 'integer',
+        description: 'Rough reading time at an ordinary pace, from the page count.',
+      }),
+      community: nullable({
+        type: 'object',
+        description: 'Open Library readers’ ratings and reading logs.',
+        properties: {
+          rating: nullable({ type: 'number', description: 'Average of five or more ratings.' }),
+          ratings: { type: 'integer' },
+          wantToRead: { type: 'integer' },
+          reading: { type: 'integer' },
+          read: { type: 'integer' },
+        },
+        required: ['rating', 'ratings', 'wantToRead', 'reading', 'read'],
+      }),
+      story: {
+        type: 'object',
+        properties: {
+          places: { type: 'array', items: { type: 'string' } },
+          times: { type: 'array', items: { type: 'string' } },
+          characters: { type: 'array', items: { type: 'string' } },
+          themes: { type: 'array', items: { type: 'string' } },
+        },
+        required: ['places', 'times', 'characters', 'themes'],
+      },
+      author: nullable({
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          bio: nullable({ type: 'string' }),
+          bioSource: nullable({
+            type: 'object',
+            properties: { name: { type: 'string' }, url: { type: 'string', format: 'uri' } },
+            required: ['name', 'url'],
+          }),
+          born: nullable({ type: 'string' }),
+          died: nullable({ type: 'string' }),
+          photoUrl: nullable({
+            type: 'string',
+            description: 'A same-origin image URL under /api/cover.',
+          }),
+        },
+        required: ['name', 'bio', 'bioSource', 'born', 'died', 'photoUrl'],
+      }),
+      links: {
+        type: 'array',
+        description: 'Reviews and reference pages about the book.',
+        items: {
+          type: 'object',
+          properties: { title: { type: 'string' }, url: { type: 'string', format: 'uri' } },
+          required: ['title', 'url'],
+        },
+      },
+      editions: nullable({ type: 'integer' }),
+      languages: nullable({ type: 'integer' }),
+      openLibraryUrl: nullable({ type: 'string', format: 'uri' }),
+    },
+    required: [
+      'description',
+      'opening',
+      'readingMinutes',
+      'community',
+      'story',
+      'author',
+      'links',
+      'editions',
+      'languages',
+      'openLibraryUrl',
+    ],
+  },
   RelatedBook: {
     type: 'object',
     description: 'A suggestion, in the same shape as a search result.',
@@ -615,6 +696,22 @@ const paths: Record<string, Record<string, Json>> = {
           'Related books.',
         ),
         ...errors(401, 404, 429, 503),
+      },
+    },
+  },
+  '/api/books/{id}/about': {
+    get: {
+      operationId: 'getBookAbout',
+      tags: ['Discover'],
+      summary: 'About a book',
+      description:
+        'Reading time, what Open Library readers think, the opening lines, the story’s places, times, people and themes, the author, and links to reviews. Public, for any book someone has shelved; cached for a day.',
+      parameters: [
+        pathParam('id', 'The book id, such as `openlibrary:OL17370186W` (URL-encode the colon).'),
+      ],
+      responses: {
+        200: json(ref('BookAbout'), 'What the catalogues know about the book.'),
+        ...errors(404, 429),
       },
     },
   },
