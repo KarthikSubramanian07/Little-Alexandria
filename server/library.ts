@@ -7,8 +7,35 @@ export const bookId = (source: string, sourceId: string) => `${source}:${sourceI
 
 const ALLOWED_COVER_HOSTS = new Set(['covers.openlibrary.org', 'books.google.com'])
 
-export const isAllowedCoverHost = (url: URL) =>
-  url.protocol === 'https:' && ALLOWED_COVER_HOSTS.has(url.hostname)
+const isAllowedCoverHost = (url: URL) =>
+  url.protocol === 'https:' && url.port === '' && ALLOWED_COVER_HOSTS.has(url.hostname)
+
+/**
+ * A cover URL in the exact shape our sources produce. Anything else (odd paths,
+ * extra query strings that would dodge the cache) is refused by the proxy.
+ */
+export function isCanonicalCover(url: URL): boolean {
+  if (!isAllowedCoverHost(url) || url.username || url.password || url.hash) return false
+  if (url.hostname === 'covers.openlibrary.org') {
+    return (
+      /^\/b\/(id|isbn|olid)\/[A-Za-z0-9-]{1,40}-[SML]\.jpg$/.test(url.pathname) &&
+      (url.search === '' || url.search === '?default=false')
+    )
+  }
+  return url.pathname.startsWith('/books/')
+}
+
+/** Where a cover host may send us on the way to the image: its own archives and CDNs. */
+export const isAllowedCoverRedirect = (url: URL) =>
+  url.protocol === 'https:' &&
+  url.port === '' &&
+  (isAllowedCoverHost(url) ||
+    url.hostname === 'archive.org' ||
+    url.hostname.endsWith('.archive.org') ||
+    url.hostname.endsWith('.googleusercontent.com'))
+
+/** The raster formats a cover may be. SVG never: it could carry script. */
+export const COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
 /** Covers are served through our own origin so the browser can read their colours. */
 export function proxiedCover(remote: string | null): string | null {

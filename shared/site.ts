@@ -331,7 +331,7 @@ export const DOCS_DOC: SiteDoc = {
     { type: 'h2', text: 'Rate limits', id: 'rate-limits' },
     {
       type: 'p',
-      text: 'Each client may make 600 API requests a minute. Every response says where you stand, using the IETF RateLimit header fields: `RateLimit-Policy` and `RateLimit`, plus the older `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` for tools that expect them. Past the limit, the API answers 429 with a `Retry-After` header giving the seconds to wait. Limits are counted per server instance, so treat them as a ceiling rather than a guarantee.',
+      text: 'Each client may make 600 API requests a minute, and 60 imports (`POST /api/import`) a minute, since each one looks books up in the catalogues. Cover images have their own allowance of 1,200 a minute and carry no rate-limit headers. Every other response says where you stand, using the IETF RateLimit header fields: `RateLimit-Policy` and `RateLimit`, plus the older `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` for tools that expect them. Past the limit, the API answers 429 with a `Retry-After` header giving the seconds to wait. Limits are counted per server instance, so treat them as a ceiling rather than a guarantee.',
     },
     {
       type: 'code',

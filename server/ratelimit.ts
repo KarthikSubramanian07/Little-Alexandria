@@ -14,6 +14,12 @@ interface RateLimitPolicy {
 }
 
 export const DEFAULT_POLICY: RateLimitPolicy = { name: 'default', quota: 600, window: 60 }
+/** Each import batch looks up several books upstream, so imports get a smaller budget. */
+export const IMPORT_POLICY: RateLimitPolicy = { name: 'import', quota: 60, window: 60 }
+/** Covers: enough for a big library on a cold cache, not enough to use us as a free proxy. */
+export const COVER_POLICY: RateLimitPolicy = { name: 'cover', quota: 1200, window: 60 }
+/** Server-rendered pages outside the API, such as shared libraries and the sitemap. */
+export const PAGE_POLICY: RateLimitPolicy = { name: 'page', quota: 300, window: 60 }
 
 interface Bucket {
   start: number
@@ -70,11 +76,32 @@ export function rateLimitHeaders(
   }
 }
 
-/** Who is asking: Cloudflare's view of the client's address. */
-export const clientKey = (headers: Headers) =>
-  headers.get('CF-Connecting-IP') ??
-  headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ??
-  'local'
+/**
+ * Who is asking: Cloudflare's view of the client's address. An IPv6 client
+ * usually owns a whole /64, so that is the unit that gets counted.
+ */
+export function clientKey(headers: Headers): string {
+  const ip =
+    headers.get('CF-Connecting-IP') ??
+    headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ??
+    'local'
+  return ip.includes(':') ? ipv6Prefix64(ip) : ip
+}
+
+/** The first four groups of an IPv6 address, with `::` expanded. */
+export function ipv6Prefix64(ip: string): string {
+  const [head = '', tail] = ip.toLowerCase().split('::')
+  const left = head ? head.split(':') : []
+  const right = tail ? tail.split(':') : []
+  const groups =
+    tail === undefined
+      ? left
+      : [...left, ...Array(Math.max(0, 8 - left.length - right.length)).fill('0'), ...right]
+  return `${groups
+    .slice(0, 4)
+    .map((g) => g.replace(/^0+(?=.)/, '') || '0')
+    .join(':')}::/64`
+}
 
 /** Hono middleware: count the request, label the response, refuse with 429 past the quota. */
 export function rateLimit(limiter: RateLimiter): MiddlewareHandler {

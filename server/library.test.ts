@@ -7,6 +7,8 @@ import {
   comparePositions,
   computeStats,
   frontOf,
+  isAllowedCoverRedirect,
+  isCanonicalCover,
   proxiedCover,
 } from './library'
 import { FIXTURE_BOOKS } from './sources/fixtures-data'
@@ -129,5 +131,36 @@ describe('proxiedCover', () => {
     expect(proxiedCover('http://covers.openlibrary.org/b/id/1-L.jpg')).toBeNull()
     expect(proxiedCover('not a url')).toBeNull()
     expect(proxiedCover(null)).toBeNull()
+  })
+})
+
+describe('cover URLs', () => {
+  it('accept exactly the shapes our catalogues produce', () => {
+    for (const ok of [
+      'https://covers.openlibrary.org/b/id/14627509-L.jpg?default=false',
+      'https://covers.openlibrary.org/b/isbn/9780547928227-M.jpg',
+      'https://books.google.com/books/publisher/content/images/frontcover/abc?fife=w600-h900&source=gbs_api',
+    ]) {
+      expect(isCanonicalCover(new URL(ok)), ok).toBe(true)
+    }
+    for (const bad of [
+      'https://covers.openlibrary.org/b/id/1-L.jpg?default=false&x=1',
+      'https://covers.openlibrary.org/b/id/1-L.svg',
+      'https://covers.openlibrary.org:444/b/id/1-L.jpg',
+      'https://user@covers.openlibrary.org/b/id/1-L.jpg',
+      'https://books.google.com/accounts/login',
+      'https://evil.example/b/id/1-L.jpg',
+    ]) {
+      expect(isCanonicalCover(new URL(bad)), bad).toBe(false)
+    }
+  })
+
+  it('follow redirects only to the catalogues’ own archives', () => {
+    expect(isAllowedCoverRedirect(new URL('https://archive.org/download/x/y.jpg'))).toBe(true)
+    expect(isAllowedCoverRedirect(new URL('https://ia800100.us.archive.org/x.jpg'))).toBe(true)
+    expect(isAllowedCoverRedirect(new URL('https://evil.example/x.jpg'))).toBe(false)
+    expect(isAllowedCoverRedirect(new URL('https://notarchive.org/x.jpg'))).toBe(false)
+    expect(isAllowedCoverRedirect(new URL('http://archive.org/x.jpg'))).toBe(false)
+    expect(isAllowedCoverRedirect(new URL('https://169.254.169.254/'))).toBe(false)
   })
 })

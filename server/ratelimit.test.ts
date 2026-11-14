@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
-import { RateLimiter, clientKey, rateLimit, rateLimitHeaders } from './ratelimit'
+import { RateLimiter, clientKey, ipv6Prefix64, rateLimit, rateLimitHeaders } from './ratelimit'
 
 const policy = { name: 'default', quota: 3, window: 60 }
 
@@ -60,5 +60,19 @@ describe('rateLimit middleware', () => {
     expect(Number(limited.headers.get('Retry-After'))).toBeGreaterThan(0)
     expect(limited.headers.get('RateLimit-Remaining')).toBe('0')
     expect(await limited.json()).toEqual({ error: 'Too many requests. Please slow down.' })
+  })
+})
+
+describe('ipv6Prefix64', () => {
+  it('counts a whole /64 as one client', () => {
+    expect(ipv6Prefix64('2001:db8:abcd:12:1:2:3:4')).toBe('2001:db8:abcd:12::/64')
+    expect(ipv6Prefix64('2001:db8:abcd:12::99')).toBe('2001:db8:abcd:12::/64')
+    expect(ipv6Prefix64('2001:DB8::1')).toBe('2001:db8:0:0::/64')
+    expect(ipv6Prefix64('::1')).toBe('0:0:0:0::/64')
+    const headers = (ip: string) => new Headers({ 'CF-Connecting-IP': ip })
+    expect(clientKey(headers('2001:db8:abcd:12::1'))).toBe(
+      clientKey(headers('2001:db8:abcd:12:ffff::2')),
+    )
+    expect(clientKey(headers('203.0.113.9'))).toBe('203.0.113.9')
   })
 })

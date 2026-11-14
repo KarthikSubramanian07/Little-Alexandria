@@ -8,7 +8,10 @@ const SHELF_NAMES: Record<Shelf, string> = {
 }
 
 const cell = (value: string | number | null | undefined) => {
-  const text = value === null || value === undefined ? '' : String(value)
+  let text = value === null || value === undefined ? '' : String(value)
+  // Text that a spreadsheet would run as a formula (a title edited to
+  // `=HYPERLINK(...)`, say) is kept as text with a leading apostrophe.
+  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(text)) text = `'${text}`
   return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text
 }
 

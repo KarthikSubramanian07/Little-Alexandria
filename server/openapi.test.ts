@@ -89,7 +89,9 @@ describe('real responses match the documented schemas', () => {
   ) => {
     const response = await call(method, path, body)
     expect(response.status).toBe(status)
-    expect(response.headers.get('RateLimit-Policy')).toBe('"default";q=600;w=60')
+    expect(response.headers.get('RateLimit-Policy')).toBe(
+      path === '/api/import' ? '"import";q=60;w=60' : '"default";q=600;w=60',
+    )
     const validate = ajv.compile({
       $ref: `https://openapi.test/doc#/${pointer('paths', template, method.toLowerCase(), 'responses', String(status), 'content', 'application/json', 'schema')}`,
     })

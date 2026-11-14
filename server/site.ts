@@ -6,6 +6,7 @@ import { SHELF_LABELS, SHELVES, type LibraryEntry, type PublicProfile } from '..
 import { ABOUT_DOC, SITE, SITE_DOCS } from '../shared/site'
 import type { Env } from './env'
 import { openApiDocument } from './openapi'
+import { PAGE_POLICY, RateLimiter, clientKey } from './ratelimit'
 import { createStore } from './store'
 
 export interface SiteEnv extends Env {
@@ -332,9 +333,10 @@ function renderShell(shell: string, page: Page): string {
     start >= 0 && end > start
       ? `${shell.slice(0, start + HEAD_START.length)}\n    ${renderHead(page)}\n    ${shell.slice(end)}`
       : shell
+  // A function replacer, so `$&` or `$'` in a book title is just text.
   html = html.replace(
     /<div id="root">[\s\S]*?<\/div>(?=\s*<noscript>)/,
-    `<div id="root"><article class="prerendered">\n${page.html}\n</article></div>`,
+    () => `<div id="root"><article class="prerendered">\n${page.html}\n</article></div>`,
   )
   return html
 }
@@ -415,6 +417,15 @@ function respondWith(page: Page, markdown: boolean, shell: string | null): Respo
   return new Response(renderShell(shell, page), { status: page.status, headers })
 }
 
+// Pages that read the database (shared libraries, the sitemap) are counted, so
+// nobody can hammer D1 through them.
+const pageLimiter = new RateLimiter(PAGE_POLICY)
+const tooMany = () =>
+  new Response('Too many requests. Please slow down.', {
+    status: 429,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '60' },
+  })
+
 const text = (body: string, type: string, cache = 'public, max-age=3600') =>
   new Response(body, {
     headers: { 'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': cache },
@@ -446,6 +457,7 @@ export async function handleSite(
         },
       })
     case '/sitemap.xml': {
+      if (!pageLimiter.hit(clientKey(request.headers)).allowed) return tooMany()
       const handles = await createStore(env.DB)
         .publicHandles()
         .catch(() => [])
@@ -455,7 +467,9 @@ export async function handleSite(
 
   // Trailing slashes have one canonical spelling: without.
   if (path.length > 1 && path.endsWith('/')) {
-    return Response.redirect(new URL(path.replace(/\/+$/, '') + url.search, url).toString(), 308)
+    // Built from our own origin, never parsed: `//evil.example/` must not become a host.
+    const trimmed = path.replace(/^\/+|\/+$/g, '')
+    return Response.redirect(`${url.origin}/${trimmed}${url.search}`, 308)
   }
 
   const asMarkdownFile = path.endsWith('.md')
@@ -482,6 +496,7 @@ export async function handleSite(
       page = privatePage(pagePath, route.title)
       break
     case 'shared': {
+      if (!pageLimiter.hit(clientKey(request.headers)).allowed) return tooMany()
       const shared = await createStore(env.DB)
         .publicLibrary(route.handle)
         .catch(() => null)

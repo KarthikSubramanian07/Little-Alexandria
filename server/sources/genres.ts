@@ -35,6 +35,9 @@ const RULES: [genre: string, pattern: RegExp][] = [
   ['Literary Fiction', /literary|literature|fiction/i],
 ]
 
+/** Every genre name we use; an import's genre hint must be one of these. */
+export const KNOWN_GENRES: ReadonlySet<string> = new Set(RULES.map(([genre]) => genre))
+
 /**
  * Map raw subjects to at most `limit` friendly genres. Each subject counts only
  * toward its most specific genre, so "Science fiction" never also reads as

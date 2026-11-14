@@ -440,10 +440,16 @@ describe('your data', () => {
 })
 
 describe('cover proxy', () => {
-  it('refuses hosts outside the allowlist', async () => {
-    const response = await reader()(
-      `/api/cover?src=${encodeURIComponent('https://evil.example/x.jpg')}`,
-    )
-    expect(response.status).toBe(400)
+  it('refuses hosts outside the allowlist, and odd shapes on allowed hosts', async () => {
+    for (const src of [
+      'https://evil.example/x.jpg',
+      'https://covers.openlibrary.org:8443/b/id/1-L.jpg',
+      'https://covers.openlibrary.org/b/id/1-L.jpg?default=false&bust=1',
+      'https://covers.openlibrary.org/../admin',
+      'http://covers.openlibrary.org/b/id/1-L.jpg',
+    ]) {
+      const response = await reader()(`/api/cover?src=${encodeURIComponent(src)}`)
+      expect(response.status, src).toBe(400)
+    }
   })
 })

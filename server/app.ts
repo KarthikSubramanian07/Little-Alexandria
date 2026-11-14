@@ -16,12 +16,28 @@ import { libraryToCsv } from '../shared/export'
 import type { ImportOutcome } from '../shared/types'
 import { auth } from './auth'
 import type { AppEnv } from './env'
-import { DEFAULT_POLICY, RateLimiter, rateLimit } from './ratelimit'
-import { LibraryError, bookFromMetadata, bookId, computeStats, isAllowedCoverHost } from './library'
+import {
+  COVER_POLICY,
+  DEFAULT_POLICY,
+  IMPORT_POLICY,
+  RateLimiter,
+  clientKey,
+  rateLimit,
+} from './ratelimit'
+import {
+  COVER_TYPES,
+  LibraryError,
+  bookFromMetadata,
+  bookId,
+  computeStats,
+  isAllowedCoverRedirect,
+  isCanonicalCover,
+} from './library'
 import { SESSION_COOKIE, readSession } from './session'
 import { discoverFor, relatedFor } from './related'
 import { lookupBook, searchBooks } from './sources'
 import { matchOpenLibrary } from './sources/openlibrary'
+import { KNOWN_GENRES } from './sources/genres'
 import { SourceError } from './sources/types'
 import { RESERVED_HANDLES, createStore } from './store'
 
@@ -39,10 +55,20 @@ async function body<T extends z.ZodType>(c: { req: { json(): Promise<unknown> } 
 
 const api = new Hono<AppEnv>()
 
-// Covers are cached for a year, so they carry no rate-limit state; everything else counts.
+// Covers have their own, roomier budget (a full library is hundreds of them) and
+// carry no rate-limit headers, since browsers cache them for a year. Imports reach
+// out to the catalogues for every row, so they get a tighter one.
 const limiter = new RateLimiter(DEFAULT_POLICY)
+const coverLimiter = new RateLimiter(COVER_POLICY)
+const importLimiter = new RateLimiter(IMPORT_POLICY)
 api.use('*', async (c, next) => {
-  if (c.req.path === '/api/cover') return next()
+  if (c.req.path === '/api/cover') {
+    if (!coverLimiter.hit(clientKey(c.req.raw.headers)).allowed) {
+      return c.body(null, 429, { 'Retry-After': '60' })
+    }
+    return next()
+  }
+  if (c.req.path === '/api/import') return rateLimit(importLimiter)(c, next)
   return rateLimit(limiter)(c, next)
 })
 
@@ -68,24 +94,42 @@ api.get('/cover', async (c) => {
   } catch {
     return c.json({ error: 'Bad cover URL' }, 400)
   }
-  if (!isAllowedCoverHost(url)) {
+  if (!isCanonicalCover(url)) {
     return c.json({ error: 'Cover host not allowed' }, 400)
   }
   // Offline mode stays offline: books fall back to their typeset cloth covers.
   if (c.env.BOOK_SOURCE === 'fixture') return c.body(null, 404)
-  const upstream = await fetch(url.toString(), {
-    cf: { cacheTtl: 60 * 60 * 24 * 30, cacheEverything: true },
-  })
-  const type = upstream.headers.get('content-type') ?? ''
-  // Google answers a missing cover with a 200 grey PNG; real covers are JPEGs.
-  const isPlaceholder = url.hostname === 'books.google.com' && type.includes('png')
-  if (!upstream.ok || !type.startsWith('image/') || isPlaceholder) {
-    return c.body(null, 404, { 'Cache-Control': 'public, max-age=86400' })
+  const missing = () => c.body(null, 404, { 'Cache-Control': 'public, max-age=86400' })
+
+  // Follow redirects by hand, so every hop has to be a host we trust.
+  let upstream: Response | null = null
+  let target = url
+  for (let hop = 0; hop < 4; hop++) {
+    const response = await fetch(target.toString(), {
+      redirect: 'manual',
+      cf: { cacheTtl: 60 * 60 * 24 * 30, cacheEverything: true },
+    })
+    const location = response.headers.get('location')
+    if (response.status < 300 || response.status >= 400 || !location) {
+      upstream = response
+      break
+    }
+    const next = new URL(location, target)
+    if (!isAllowedCoverRedirect(next)) return missing()
+    target = next
   }
+  if (!upstream) return missing()
+
+  const type = (upstream.headers.get('content-type') ?? '').split(';')[0]!.trim().toLowerCase()
+  // Google answers a missing cover with a 200 grey PNG; real covers are JPEGs.
+  const isPlaceholder = url.hostname === 'books.google.com' && type === 'image/png'
+  if (!upstream.ok || !COVER_TYPES.includes(type) || isPlaceholder) return missing()
   return new Response(upstream.body, {
     headers: {
       'Content-Type': type,
       'Cache-Control': 'public, max-age=31536000, immutable',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'; sandbox",
     },
   })
 })
@@ -239,7 +283,8 @@ reader.post('/import', async (c) => {
         notes: row.notes,
         finishedAt,
         finishedApprox: !row.finishedAt && row.finishedYear !== null,
-        genreHint: row.genreHint,
+        // Hints land in the shared books table, so only our own genre names get in.
+        genreHint: row.genreHint && KNOWN_GENRES.has(row.genreHint) ? row.genreHint : null,
       })
       outcomes.push({ status: 'added', title: book.title, entry })
     } catch (error) {
