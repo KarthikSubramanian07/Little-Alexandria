@@ -9,7 +9,7 @@ export interface Env {
   BOOK_SOURCE?: string
 }
 
-export interface Variables {
+interface Variables {
   userId: string
 }
 
