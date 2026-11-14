@@ -23,12 +23,12 @@
     "test:e2e": "playwright test",
     "deploy": "pnpm build && pnpm db:migrate:remote && wrangler pages deploy dist --project-name little-alexandria --branch main",
     "db:migrate:local": "wrangler d1 migrations apply little-alexandria --local",
-    "db:migrate:remote": "wrangler d1 migrations apply little-alexandria --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply little-alexandria --remote",
+    "knip": "knip"
   },
   "dependencies": {
     "@dnd-kit/abstract": "0.5.3",
     "@dnd-kit/dom": "0.5.3",
-    "@dnd-kit/helpers": "^0.5.3",
     "@dnd-kit/react": "^0.5.3",
     "@fontsource-variable/fraunces": "^5.3.0",
     "@fontsource-variable/hanken-grotesk": "^5.3.0",
@@ -59,8 +59,6 @@
     "@tailwindcss/vite": "^4.3.5",
     "@tanstack/router-plugin": "^1.169.0",
     "@testing-library/jest-dom": "^7.0.1",
-    "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.6.10",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -73,6 +71,7 @@
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.14.0",
     "jsdom": "^31.0.0",
+    "knip": "^5.88.1",
     "prettier": "^3.10.1",
     "tailwindcss": "^4.3.5",
     "typescript": "6.0.3",

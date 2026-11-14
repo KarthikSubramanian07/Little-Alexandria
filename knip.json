@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["functions/**/*.ts", "scripts/*.{mjs,ts}", "src/routes/**/*.tsx"],
+  "ignore": ["public/theme-init.js"],
+  "ignoreDependencies": ["@fontsource/gaegu"]
+}
