@@ -40,6 +40,10 @@ test('a shared library is visible to strangers, without notes', async ({
     .getByRole('button', { name: /^Circe\b/ })
     .click()
   await expect(visit.getByRole('dialog').getByText(/on guest’s read shelf/i)).toBeVisible()
+  // The catalogue's notes are public, so visitors get them too.
+  await expect(
+    visit.getByRole('dialog').getByRole('region', { name: 'About the author' }),
+  ).toBeVisible()
   await expect(visit.getByText('my secret thoughts')).toHaveCount(0)
   await stranger.close()
 })
