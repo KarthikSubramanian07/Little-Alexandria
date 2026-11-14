@@ -18,7 +18,7 @@ export function isCanonicalCover(url: URL): boolean {
   if (!isAllowedCoverHost(url) || url.username || url.password || url.hash) return false
   if (url.hostname === 'covers.openlibrary.org') {
     return (
-      /^\/b\/(id|isbn|olid)\/[A-Za-z0-9-]{1,40}-[SML]\.jpg$/.test(url.pathname) &&
+      /^\/(b\/(id|isbn|olid)|a\/(id|olid))\/[A-Za-z0-9-]{1,40}-[SML]\.jpg$/.test(url.pathname) &&
       (url.search === '' || url.search === '?default=false')
     )
   }

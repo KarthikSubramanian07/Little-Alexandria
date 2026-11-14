@@ -1,4 +1,5 @@
 import type {
+  BookAbout,
   ImportOutcome,
   ImportRow,
   LibraryEntry,
@@ -97,6 +98,7 @@ export const api = {
   importBatch: (rows: ImportRow[], today: string) =>
     request<{ outcomes: ImportOutcome[] }>('/import', json('POST', { rows, today })),
   related: (entryId: string) => request<RelatedResponse>(`/library/${entryId}/related`),
+  about: (bookId: string) => request<BookAbout>(`/books/${encodeURIComponent(bookId)}/about`),
   discover: () => request<{ sections: DiscoverSection[] }>('/discover'),
   deleteAccount: () => request<void>('/me', json('DELETE')),
 }

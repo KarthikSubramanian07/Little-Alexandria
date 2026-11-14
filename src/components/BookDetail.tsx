@@ -7,7 +7,9 @@ import { SHELF_LABELS, SHELVES, type LibraryEntry } from '../../shared/types'
 import { api } from '../lib/api'
 import { gentle, settle, snappy } from '../lib/motion'
 import { useMoveEntry, useRemoveEntry, useUpdateEntry } from '../lib/queries'
+import { aboutFacts, useBookAbout } from '../lib/about'
 import { Cover } from './Book'
+import { AboutAuthor, AboutSkeleton, FurtherReading, InTheStory, OpeningLines, ReadersVerdict, SourcesNote } from './BookAbout'
 import { RelatedShelves } from './Related'
 import { StarRating } from './StarRating'
 
@@ -48,7 +50,9 @@ export function BookDetail({ entry, onClose, visitor, onSearch }: BookDetailProp
     enabled: !visitor,
     staleTime: 10 * 60_000,
   })
-  const description = book.description ?? related.data?.description ?? null
+  // What the open catalogues know: public, so visitors to a shared shelf see it too.
+  const about = useBookAbout(book)
+  const description = book.description ?? about.data?.description ?? related.data?.description ?? null
 
   return (
     <Dialog.Root open onOpenChange={(open) => !open && onClose()}>
@@ -122,6 +126,9 @@ export function BookDetail({ entry, onClose, visitor, onSearch }: BookDetailProp
                   <dl className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm">
                     {book.publishedYear && <Fact label="First published" value={String(book.publishedYear)} />}
                     {book.pageCount && <Fact label="Pages" value={book.pageCount.toLocaleString()} />}
+                    {aboutFacts(about.data).map((fact) => (
+                      <Fact key={fact.label} label={fact.label} value={fact.value} />
+                    ))}
                     {book.isbn13 && <Fact label="ISBN" value={book.isbn13} mono />}
                   </dl>
                   {book.genres.length > 0 && (
@@ -134,12 +141,23 @@ export function BookDetail({ entry, onClose, visitor, onSearch }: BookDetailProp
                     </ul>
                   )}
 
+                  {about.data ? <ReadersVerdict about={about.data} shelf={entry.shelf} /> : about.isPending && <AboutSkeleton />}
+
                   {visitor ? <VisitorCard entry={entry} {...visitor} /> : <OwnerCard entry={entry} onClose={onClose} />}
+                  {about.data?.opening && <OpeningLines text={about.data.opening} />}
                   {description ? (
                     <Description text={description} />
-                  ) : related.isPending && !visitor ? (
+                  ) : (related.isPending && !visitor) || about.isPending ? (
                     <div className="mt-8 h-24 animate-pulse rounded-xl bg-line/40" aria-hidden />
                   ) : null}
+                  {about.data && (
+                    <>
+                      <InTheStory story={about.data.story} />
+                      {about.data.author && <AboutAuthor author={about.data.author} />}
+                      <FurtherReading links={about.data.links} />
+                      {about.data.openLibraryUrl && <SourcesNote url={about.data.openLibraryUrl} />}
+                    </>
+                  )}
                 </div>
               </div>
 

@@ -130,6 +130,16 @@ describe('real responses match the documented schemas', () => {
     await conforms('PATCH', `/api/library/${id}`, '/api/library/{id}', { rating: 5 })
     await conforms('GET', '/api/library', '/api/library')
     await conforms('GET', `/api/library/${id}/related`, '/api/library/{id}/related')
+    const bookId = encodeURIComponent(added.entry.book.id as string)
+    const about = await conforms('GET', `/api/books/${bookId}/about`, '/api/books/{id}/about')
+    expect(about.community.wantToRead).toBeGreaterThan(0)
+    await conforms(
+      'GET',
+      '/api/books/openlibrary%3AOL0W/about',
+      '/api/books/{id}/about',
+      undefined,
+      404,
+    )
     await conforms('PUT', '/api/goals/2026', '/api/goals/{year}', { target: 24 })
     await conforms('GET', '/api/stats?year=2026', '/api/stats')
     await conforms('GET', '/api/discover', '/api/discover')

@@ -34,6 +34,11 @@ export function cleanOpenLibraryDescription(input: unknown): string | null {
     .replace(/\[([^\]]+)\]\[\d+\]/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/^\s*\[\d+\]:.*$/gm, '')
+    // Wikipedia citation marks copied in with the text: "[3]".
+    .replace(/\[\d+\]/g, '')
+    // Markdown emphasis: **bold**, __bold__, *italic*, _italic_.
+    .replace(/(\*\*|__)(?=\S)([\s\S]*?\S)\1/g, '$2')
+    .replace(/(^|[\s(“"'])[*_](?=\S)([^*_\n]*?\S)[*_](?=[\s).,;:!?”"']|$)/g, '$1$2')
   return plainText(prose)
 }
 

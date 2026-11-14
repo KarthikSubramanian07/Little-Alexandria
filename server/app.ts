@@ -14,6 +14,7 @@ import {
 } from '../shared/schemas'
 import { libraryToCsv } from '../shared/export'
 import type { ImportOutcome } from '../shared/types'
+import { aboutFor, fixtureAbout } from './about'
 import { auth } from './auth'
 import type { AppEnv } from './env'
 import {
@@ -132,6 +133,24 @@ api.get('/cover', async (c) => {
       'Content-Security-Policy': "default-src 'none'; sandbox",
     },
   })
+})
+
+/**
+ * What the open catalogues know about a book: reading time, readers' verdict,
+ * the opening lines, the story's places and people, and the author. Public,
+ * because it is catalogue data, but only for books someone has shelved, so
+ * this can't be used to fetch arbitrary pages through us.
+ */
+api.get('/books/:id/about', async (c) => {
+  const store = createStore(c.env.DB)
+  const book = await store.getBook(c.req.param('id'))
+  if (!book) return c.json({ error: 'That book isn’t in the catalogue' }, 404)
+  const about = c.env.BOOK_SOURCE === 'fixture' ? fixtureAbout(book) : await aboutFor(book)
+  // Books imported from a list arrive without a description; keep the one we found.
+  if (!book.description && about.description) {
+    await store.setDescription(book.id, about.description)
+  }
+  return c.json(about, 200, { 'Cache-Control': 'public, max-age=86400' })
 })
 
 /** A shared library, read-only and without notes. 404 unless its owner shared it. */

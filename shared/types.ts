@@ -63,6 +63,50 @@ export interface LibraryEntry {
   book: Book
 }
 
+/**
+ * Everything the open catalogues know about a book beyond its basic record:
+ * how long it takes, what other readers make of it, how it opens, where and
+ * when it is set, and who wrote it. Every field is optional in spirit; the
+ * card shows whatever is there.
+ */
+export interface BookAbout {
+  /** A description, only when the book's own record has none. */
+  description: string | null
+  /** The first lines of the book. */
+  opening: string | null
+  /** Rough reading time at an ordinary pace, from the page count. */
+  readingMinutes: number | null
+  /** Open Library readers' ratings and reading logs. */
+  community: {
+    rating: number | null
+    ratings: number
+    wantToRead: number
+    reading: number
+    read: number
+  } | null
+  story: {
+    places: string[]
+    times: string[]
+    characters: string[]
+    themes: string[]
+  }
+  author: {
+    name: string
+    bio: string | null
+    /** Where the bio came from, for attribution. */
+    bioSource: { name: string; url: string } | null
+    born: string | null
+    died: string | null
+    photoUrl: string | null
+  } | null
+  /** Reviews and reference pages about the book. */
+  links: { title: string; url: string }[]
+  editions: number | null
+  languages: number | null
+  /** The book's page on Open Library, when we know it. */
+  openLibraryUrl: string | null
+}
+
 export interface SearchResult {
   source: BookSource
   sourceId: string
