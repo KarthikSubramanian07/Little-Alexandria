@@ -796,6 +796,89 @@ body::after {
   }
 }
 
+/* The comic meadow under the wordmark: tufts spring up left to right, flowers
+   grow behind the letters, then a gust of wind keeps rolling across it all. */
+.meadow-tuft,
+.meadow-stalk,
+.meadow-bloom,
+.meadow-head {
+  transform-box: fill-box;
+}
+.meadow-head {
+  transform-origin: center;
+  animation: meadow-bob 2.1s ease-in-out var(--meadow-phase, 0s) infinite alternate;
+}
+@keyframes meadow-bob {
+  from {
+    rotate: -14deg;
+  }
+  to {
+    rotate: 12deg;
+  }
+}
+.meadow-tuft {
+  transform-origin: 50% 100%;
+  scale: 1 0;
+  animation:
+    meadow-rise 0.9s cubic-bezier(0.3, 1.3, 0.6, 1) var(--meadow-delay, 0s) forwards,
+    meadow-wind 4.2s ease-in-out var(--meadow-phase, 0s) infinite;
+}
+.meadow-stalk {
+  transform-origin: 50% 100%;
+  animation: meadow-wind 4.2s ease-in-out var(--meadow-phase, 0s) infinite;
+}
+.meadow-stem {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: meadow-draw 0.9s cubic-bezier(0.5, 0, 0.3, 1) var(--meadow-delay, 0s) forwards;
+}
+.meadow-bloom {
+  transform-origin: center;
+  scale: 0;
+  rotate: -35deg;
+  animation: meadow-open 0.9s cubic-bezier(0.25, 1.45, 0.5, 1) var(--meadow-delay, 0s) forwards;
+}
+@keyframes meadow-rise {
+  to {
+    scale: 1 1;
+  }
+}
+@keyframes meadow-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes meadow-open {
+  to {
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+@keyframes meadow-wind {
+  0%,
+  100% {
+    rotate: calc(var(--meadow-sway, 4deg) * -0.35);
+  }
+  45% {
+    rotate: var(--meadow-sway, 4deg);
+  }
+  70% {
+    rotate: calc(var(--meadow-sway, 4deg) * 0.2);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meadow-tuft,
+  .meadow-stalk,
+  .meadow-stem,
+  .meadow-bloom,
+  .meadow-head {
+    animation: none;
+    stroke-dashoffset: 0;
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+
 /* The river of covers. */
 .marquee-mask {
   mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
