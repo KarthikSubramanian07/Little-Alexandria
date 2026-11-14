@@ -4,6 +4,7 @@ import { clsx } from 'clsx'
 import { motion } from 'motion/react'
 import { AlertDialog, DropdownMenu } from 'radix-ui'
 import { useEffect, useState, type ReactNode } from 'react'
+import { SITE } from '../../shared/site'
 import type { User } from '../../shared/types'
 import { snappy } from '../lib/motion'
 import { api } from '../lib/api'
@@ -307,6 +308,12 @@ function UserMenu({ user, onShare }: { user: User; onShare: () => void }) {
             <DropdownMenu.Item className={menuItem} asChild>
               <a href="/api/export" download>
                 Download my library <span className="text-ink-faint">(CSV)</span>
+              </a>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item className={menuItem} asChild>
+              <a href={SITE.coffee} target="_blank" rel="noreferrer">
+                Buy me a coffee <span className="text-ink-faint">(support the library)</span>
+                <span className="sr-only"> (opens in a new tab)</span>
               </a>
             </DropdownMenu.Item>
             <DropdownMenu.Item
