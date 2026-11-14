@@ -140,3 +140,35 @@ export function exactPopular<T extends Candidate>(
     .sort((a, b) => (b.editionCount ?? 0) - (a.editionCount ?? 0))
   return exact[0] ?? null
 }
+
+/** Study guides and summaries ride on a famous book's name; never mistake one for it. */
+const STUDY_AID = /\b(summary|analysis|study guide|sparknotes|cliffsnotes|workbook|companion to)\b/i
+/** An English title by the same author is a different book, not the original of this one. */
+const ENGLISH = /\b(the|of|and|in|a|an|to|with|for|on|at|from|is|my|your|who)\b/i
+
+/**
+ * For a book best known in translation: the catalogue files the work under its
+ * original title ("Män som hatar kvinnor"), so no English title ever matches.
+ * A search for the English title and the author still ranks that work at the
+ * top. Accept it only when it is one of the first two results, its author
+ * matches, it is widely published, its title is not in English, and it is not
+ * a study aid.
+ */
+export function translatedOriginal<T extends Candidate>(
+  author: string | null,
+  ranked: T[],
+  minEditions = 10,
+): T | null {
+  if (!author) return null
+  return (
+    ranked
+      .slice(0, 2)
+      .find(
+        (candidate) =>
+          authorMatches(author, candidate.authors) &&
+          (candidate.editionCount ?? 0) >= minEditions &&
+          !ENGLISH.test(candidate.title) &&
+          !STUDY_AID.test(candidate.title),
+      ) ?? null
+  )
+}
