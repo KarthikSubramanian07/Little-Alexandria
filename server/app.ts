@@ -37,6 +37,7 @@ import {
 import { SESSION_COOKIE, readSession } from './session'
 import { discoverFor, relatedFor } from './related'
 import { lookupBook, searchBooks } from './sources'
+import { shelfTitle } from './sources/match'
 import { matchOpenLibrary } from './sources/openlibrary'
 import { KNOWN_GENRES } from './sources/genres'
 import { SourceError } from './sources/types'
@@ -292,6 +293,7 @@ reader.post('/import', async (c) => {
         continue
       }
       const book = bookFromMetadata(metadata)
+      book.title = shelfTitle(row.title, book.title)
       if (await store.hasBook(userId, book.id)) {
         outcomes.push({ status: 'exists', title: book.title })
         continue

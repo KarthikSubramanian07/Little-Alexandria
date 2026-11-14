@@ -5,6 +5,8 @@ import {
   exactPopular,
   normalizeTitle,
   splitAuthors,
+  shelfTitle,
+  tidyTitle,
   titleSimilarity,
   translatedOriginal,
 } from './match'
@@ -138,5 +140,41 @@ describe('translatedOriginal', () => {
       editionCount: 60,
     }
     expect(translatedOriginal('Stephen King', [sibling])).toBeNull()
+  })
+})
+
+describe('tidyTitle', () => {
+  it('drops packaging notes and puts a trailing article back in front', () => {
+    expect(tidyTitle('Atlas Shrugged (Centennial Ed. HC)')).toBe('Atlas Shrugged')
+    expect(tidyTitle('Checkmate CD (Abridged)')).toBe('Checkmate CD')
+    expect(tidyTitle('Seven Brief Lessons on Physics 8-Copy Counter Display')).toBe(
+      'Seven Brief Lessons on Physics',
+    )
+    expect(tidyTitle('Outsiders, The')).toBe('The Outsiders')
+    expect(tidyTitle('The  high window')).toBe('The high window')
+    expect(tidyTitle('Beloved')).toBe('Beloved')
+  })
+})
+
+describe('shelfTitle', () => {
+  it('keeps the reader’s English title over an original-language one', () => {
+    expect(shelfTitle('Secondhand Time: The Last of the Soviets', 'Время сэконд хэнд')).toBe(
+      'Secondhand Time',
+    )
+    expect(shelfTitle('The Girl with the Dragon Tattoo', 'Män som hatar kvinnor')).toBe(
+      'The Girl with the Dragon Tattoo',
+    )
+    expect(
+      shelfTitle(
+        'The Unbearable Lightness of Being',
+        'Nesnesitelná lehkost bytí = The Unbearable Lightness of Being = Sonzai',
+      ),
+    ).toBe('The Unbearable Lightness of Being')
+  })
+
+  it('lets the catalogue fix a typo, and keeps a close title as catalogued', () => {
+    expect(shelfTitle('Demon Copperfield', 'Demon Copperhead')).toBe('Demon Copperhead')
+    expect(shelfTitle('The Lord of the Flies', 'Lord of the Flies')).toBe('Lord of the Flies')
+    expect(shelfTitle('Grapes of Wrath', 'The Grapes of Wrath')).toBe('The Grapes of Wrath')
   })
 })

@@ -172,3 +172,41 @@ export function translatedOriginal<T extends Candidate>(
       ) ?? null
   )
 }
+
+/** Packaging notes a catalogue sometimes keeps in a title. */
+const PACKAGING =
+  /\s*[([][^)\]]*\b(edition|ed\.|hc|cd|abridged|unabridged|box(ed)? set|book club|centennial|counter display)\b[^)\]]*[)\]]/gi
+
+/**
+ * Tidy a catalogue title for a shelf: drop packaging notes ("(Centennial Ed.
+ * HC)", "8-Copy Counter Display"), and turn "Outsiders, The" back into "The
+ * Outsiders".
+ */
+export function tidyTitle(title: string): string {
+  let tidy = title.replace(PACKAGING, '').replace(/\s+\d+-copy counter display$/i, '')
+  const article = /^(.*),\s*(the|a|an)$/i.exec(tidy.trim())
+  if (article)
+    tidy = `${article[2]![0]!.toUpperCase()}${article[2]!.slice(1).toLowerCase()} ${article[1]}`
+  return tidy.replace(/\s{2,}/g, ' ').trim() || title
+}
+
+/**
+ * The title to shelve a book under, given what the reader called it and what
+ * the catalogue calls it. A catalogue that files a translated book under its
+ * original title ("Время сэконд хэнд") would mean nothing on an English shelf,
+ * so the reader's English title wins there. Otherwise the catalogue wins,
+ * because it fixes the reader's typos ("Demon Copperfield").
+ */
+export function shelfTitle(readerTitle: string, catalogueTitle: string): string {
+  const wanted = readerTitle.split(':')[0]!.trim() || readerTitle
+  // "Nesnesitelná lehkost bytí = The Unbearable Lightness of Being": keep the part the reader meant.
+  const parts = tidyTitle(catalogueTitle).split(/\s+=\s+/)
+  const best = parts.reduce((a, b) =>
+    titleSimilarity(wanted, b) > titleSimilarity(wanted, a) ? b : a,
+  )
+  // Almost no shared words, and the catalogue's title isn't English while the reader's is
+  // plain Latin text: that's the original of a translation, not a typo.
+  const foreign =
+    !ENGLISH.test(best) && titleSimilarity(wanted, best) < 0.34 && /^[\x20-\x7E’‘–—]+$/.test(wanted)
+  return foreign ? wanted : best
+}
