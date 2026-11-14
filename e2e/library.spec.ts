@@ -4,7 +4,7 @@ import { shelf, shelveBook, signIn } from './helpers'
 test('the landing page invites you in', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Every great reader deserves')
-  await expect(page.getByRole('link', { name: /sign in with google/i })).toBeVisible()
+  await expect(page.getByRole('link', { name: /sign in with google/i }).first()).toBeVisible()
   await expect(page.getByRole('button', { name: /look around as a guest/i })).toBeVisible()
 })
 
@@ -67,13 +67,23 @@ test('search, shelve, rate, finish, and remove a book', async ({ page }) => {
   await expect(read.getByRole('button', { name: /^A Wizard of Earthsea\b/ })).toBeVisible()
 })
 
-test('the move menu carries a book between shelves', async ({ page }) => {
+test('a book moves between shelves: the menu with a mouse, its card on touch', async ({
+  page,
+  isMobile,
+}) => {
   await signIn(page)
   await shelveBook(page, 'dune', 'Dune')
   const want = shelf(page, 'Want to Read')
-  await want.getByRole('listitem').filter({ hasText: '' }).first().hover()
-  await want.getByRole('button', { name: 'Move or remove Dune' }).click()
-  await page.getByRole('menuitem', { name: 'Currently Reading' }).click()
+  if (isMobile) {
+    await expect(want.getByRole('button', { name: 'Move or remove Dune' })).toBeHidden()
+    await want.getByRole('button', { name: /^Dune\b/ }).click()
+    await page.getByRole('dialog').getByRole('radio', { name: 'Currently Reading' }).click()
+    await page.keyboard.press('Escape')
+  } else {
+    await want.getByRole('listitem').filter({ hasText: '' }).first().hover()
+    await want.getByRole('button', { name: 'Move or remove Dune' }).click()
+    await page.getByRole('menuitem', { name: 'Currently Reading' }).click()
+  }
   await expect(
     shelf(page, 'Currently Reading').getByRole('button', { name: /^Dune\b/ }),
   ).toBeVisible()

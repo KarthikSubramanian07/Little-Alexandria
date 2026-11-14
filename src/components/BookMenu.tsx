@@ -6,8 +6,10 @@ const itemClass =
   'flex cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink outline-none data-[highlighted]:bg-moss data-[highlighted]:text-on-moss pointer-coarse:py-3 pointer-coarse:text-base'
 
 /**
- * The quiet "move" chip above each book: the keyboard-and-thumb friendly
- * alternative to dragging. Visible on hover and focus, always on touch screens.
+ * The quiet "move" chip above each book, for mice and keyboards: it appears
+ * on hover and focus. Touch screens don't get it, since tapping a book opens
+ * its card (with the shelf switcher and "take off the shelves") and a long
+ * press picks the book up to drag it.
  */
 export function BookMenu({ entry }: { entry: LibraryEntry }) {
   const move = useMoveEntry()
@@ -16,7 +18,7 @@ export function BookMenu({ entry }: { entry: LibraryEntry }) {
     <DropdownMenu.Root modal={false}>
       <DropdownMenu.Trigger
         aria-label={`Move or remove ${entry.book.title}`}
-        className="absolute -top-8 right-0 grid size-7 place-items-center pointer-coarse:-top-10 pointer-coarse:-right-1 pointer-coarse:size-9 rounded-full border border-line-strong bg-card text-ink-soft opacity-0 shadow-sm transition group-hover/book:opacity-100 group-focus-within/book:opacity-100 hover:text-ink focus-visible:opacity-100 data-[state=open]:opacity-100 pointer-coarse:opacity-100"
+        className="absolute -top-8 right-0 grid size-7 place-items-center rounded-full border border-line-strong bg-card text-ink-soft opacity-0 shadow-sm transition group-hover/book:opacity-100 group-focus-within/book:opacity-100 hover:text-ink focus-visible:opacity-100 data-[state=open]:opacity-100 pointer-coarse:hidden"
       >
         <svg viewBox="0 0 16 16" className="size-3.5" aria-hidden>
           <circle cx="3" cy="8" r="1.4" fill="currentColor" />
