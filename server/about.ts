@@ -41,7 +41,7 @@ const FIELDS = [
 /** Minutes per page at an ordinary reading pace (about 250 words a page). */
 const MINUTES_PER_PAGE = 1.2
 
-export interface AboutDoc {
+interface AboutDoc {
   key?: string
   author_key?: string[]
   number_of_pages_median?: number
@@ -59,7 +59,7 @@ export interface AboutDoc {
   person?: string[]
 }
 
-export interface AboutWork {
+interface AboutWork {
   description?: unknown
   excerpts?: { excerpt?: string; comment?: string }[]
   links?: { title?: string; url?: string }[]
@@ -69,7 +69,7 @@ export interface AboutWork {
   subject_people?: string[]
 }
 
-export interface AboutAuthor {
+interface AboutAuthor {
   key?: string
   name?: string
   bio?: unknown
@@ -80,7 +80,7 @@ export interface AboutAuthor {
   links?: { title?: string; url?: string }[]
 }
 
-export interface WikiSummary {
+interface WikiSummary {
   type?: string
   title?: string
   description?: string
