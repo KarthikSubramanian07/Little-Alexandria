@@ -6,6 +6,7 @@ import {
   normalizeTitle,
   splitAuthors,
   titleSimilarity,
+  translatedOriginal,
 } from './match'
 
 describe('normalizeTitle', () => {
@@ -100,5 +101,42 @@ describe('exactPopular', () => {
     expect(
       exactPopular('Murder on the Orient Express', [{ ...candidates[0]!, editionCount: 2 }]),
     ).toBeNull()
+  })
+})
+
+describe('translatedOriginal', () => {
+  // Trimmed from Open Library's answers to "The Girl with the Dragon Tattoo Stieg Larsson"
+  // and "Secondhand Time Svetlana Alexievich".
+  it('finds a book filed under its original title, when the search puts it on top', () => {
+    const dragon = [
+      { title: 'Män som hatar kvinnor', authors: ['Stieg Larsson'], editionCount: 78 },
+      { title: 'The Girl Who Played with Fire', authors: ['Stieg Larsson'], editionCount: 8 },
+    ]
+    expect(translatedOriginal('Stieg Larsson', dragon)?.title).toBe('Män som hatar kvinnor')
+    const secondhand = [
+      {
+        title: "Summary of Svetlana Alexievich's Secondhand Time",
+        authors: ['Svetlana Alexievich'],
+        editionCount: 11,
+      },
+      { title: 'Время сэконд хэнд', authors: ['Svetlana Alexievich'], editionCount: 12 },
+    ]
+    expect(translatedOriginal('Svetlana Alexievich', secondhand)?.title).toBe('Время сэконд хэнд')
+  })
+
+  it('refuses another author, a rarely published book, or one further down the results', () => {
+    const work = { title: 'Män som hatar kvinnor', authors: ['Stieg Larsson'], editionCount: 78 }
+    expect(translatedOriginal('Someone Else', [work])).toBeNull()
+    expect(translatedOriginal('Stieg Larsson', [{ ...work, editionCount: 3 }])).toBeNull()
+    const other = { title: 'Another Book', authors: ['Nobody'], editionCount: 1 }
+    expect(translatedOriginal('Stieg Larsson', [other, other, work])).toBeNull()
+    expect(translatedOriginal(null, [work])).toBeNull()
+    // Another of the author's books, in English, is not the original of this one.
+    const sibling = {
+      title: 'The Drawing of the Three',
+      authors: ['Stephen King'],
+      editionCount: 60,
+    }
+    expect(translatedOriginal('Stephen King', [sibling])).toBeNull()
   })
 })
