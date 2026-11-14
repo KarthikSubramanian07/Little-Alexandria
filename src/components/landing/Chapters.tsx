@@ -17,7 +17,7 @@ import type { Book } from '../../../shared/types'
 import { Flower } from '../art/Flower'
 import { CRAYON } from '../art/palette'
 import { GoalSun } from '../art/scenes'
-import { letteringOn, SHOWCASE_BOOKS } from './showcase'
+import { letteringOn, SHOWCASE_BOOKS, thumbnailOf } from './showcase'
 
 const byTitle = (title: string) => SHOWCASE_BOOKS.find((book) => book.title === title)!
 
@@ -39,7 +39,7 @@ function MiniCover({
     >
       {book.coverUrl && !failed ? (
         <img
-          src={book.coverUrl}
+          src={thumbnailOf(book)!}
           alt=""
           loading="lazy"
           decoding="async"

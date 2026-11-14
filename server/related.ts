@@ -13,14 +13,14 @@ const FIELDS =
   'key,title,author_name,first_publish_year,cover_i,number_of_pages_median,editions,editions.cover_i,editions.language'
 const WEEK = 60 * 60 * 24 * 7
 
-export interface Adaptation {
+interface Adaptation {
   title: string
   year: number | null
   kind: 'film' | 'series' | 'other'
   url: string
 }
 
-export interface Related {
+interface Related {
   description: string | null
   byAuthor: SearchResult[]
   similar: SearchResult[]
@@ -50,7 +50,7 @@ const looseKey = (title: string, author: string | undefined) =>
   `${normalizeTitle(title)}|${(author ?? '').toLowerCase().split(' ').at(-1) ?? ''}`
 
 /** Subjects specific enough to recommend from: no "Fiction", no NYT list tags. */
-export function usefulSubjects(subjects: readonly string[]): string[] {
+function usefulSubjects(subjects: readonly string[]): string[] {
   const generic =
     /^(fiction|literature|novel|english literature|american literature|large type books|accessible book|protected daisy|in library|general|reading level|new york times|nyt:|award:|form:|genre:)/i
   return subjects.filter(
@@ -70,7 +70,7 @@ const sparqlString = (value: string) => value.replace(/\\/g, '').replace(/"/g, '
  * work records, so we match either the work id or the exact English title
  * together with the author's surname.
  */
-export async function adaptationsFor(book: {
+async function adaptationsFor(book: {
   sourceId: string
   title: string
   authors: string[]

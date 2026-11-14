@@ -192,6 +192,48 @@ describe('handleSite', () => {
     expect(response.headers.get('Location')).toBe('https://little-alexandria.pages.dev/about')
   })
 
+  it('never redirects to another host, however the path is spelled', async () => {
+    for (const path of ['//evil.example/', '///evil.example/x/', '/%2F%2Fevil.example/']) {
+      const response = await get(path)
+      expect(response.status).toBe(308)
+      expect(new URL(response.headers.get('Location')!).host).toBe('little-alexandria.pages.dev')
+    }
+  })
+
+  it('treats $ patterns in book titles as plain text', async () => {
+    const store = createStore(database.db)
+    const user = await store.upsertUser('google:dollar', {
+      name: 'Grace',
+      email: 'grace@example.com',
+      avatarUrl: null,
+    })
+    await store.updateProfile(user.id, { handle: 'grace', isPublic: true })
+    await store.addEntry(
+      user.id,
+      {
+        id: 'fixture:OL9W',
+        source: 'fixture',
+        sourceId: 'OL9W',
+        title: 'The $` and $& of it',
+        subtitle: null,
+        authors: ['Anon'],
+        publishedYear: null,
+        pageCount: null,
+        description: null,
+        genres: [],
+        coverUrl: null,
+        isbn13: null,
+        spineColor: null,
+      },
+      'read',
+      '2026-11-13',
+    )
+    const html = await (await get('/u/grace')).text()
+    expect(html).toContain('The $` and $&amp; of it')
+    // The shell appears once: the replacement spliced nothing back in.
+    expect(html.match(/<noscript>/g)).toHaveLength(1)
+  })
+
   it('serves private app pages to browsers, but keeps them out of search', async () => {
     const response = await get('/library')
     expect(response.status).toBe(200)

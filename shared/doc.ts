@@ -22,7 +22,7 @@ export interface SiteDoc {
   blocks: Block[]
 }
 
-export type Inline =
+type Inline =
   | { kind: 'text'; text: string }
   | { kind: 'link'; text: string; href: string }
   | { kind: 'code'; text: string }

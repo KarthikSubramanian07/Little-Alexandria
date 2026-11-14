@@ -7,7 +7,7 @@ import { snappy } from '../lib/motion'
 import { useAddBook, useLibrary } from '../lib/queries'
 
 /** A book you don't own yet: cover, title, and a one-tap "shelve" that stays put once pressed. */
-export function MiniBook({ result, index = 0 }: { result: SearchResult; index?: number }) {
+function MiniBook({ result, index = 0 }: { result: SearchResult; index?: number }) {
   const add = useAddBook()
   const { data } = useLibrary()
   const [failed, setFailed] = useState(false)

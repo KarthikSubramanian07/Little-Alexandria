@@ -12,7 +12,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 const wholeNumber = (n: number) => Math.round(n).toLocaleString()
 
-export function AnimatedNumber({ value, format = wholeNumber }: { value: number; format?: (n: number) => string }) {
+function AnimatedNumber({ value, format = wholeNumber }: { value: number; format?: (n: number) => string }) {
   const reduce = useReducedMotion()
   const ref = useRef<HTMLSpanElement>(null)
   const last = useRef(0)

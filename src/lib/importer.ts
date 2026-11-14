@@ -9,7 +9,7 @@ import { localToday } from '../../shared/shelf-rules'
 import type { ImportRow } from '../../shared/types'
 import { api, type LibraryResponse } from './api'
 
-export interface ImportState {
+interface ImportState {
   status: 'idle' | 'running' | 'paused' | 'done' | 'error'
   total: number
   added: number

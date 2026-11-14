@@ -56,3 +56,6 @@ export function letteringOn(cloth: string) {
   const ink = (l + 0.05) / (luminance('#2a1e16') + 0.05)
   return cream >= ink ? '#f6ead2' : '#2a1e16'
 }
+
+/** The medium-size cover, for the marquee and the little scenes where large is wasted. */
+export const thumbnailOf = (book: Book) => book.coverUrl?.replace('-L.jpg', '-M.jpg') ?? null

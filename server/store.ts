@@ -115,7 +115,7 @@ export const RESERVED_HANDLES = new Set([
 ])
 
 /** "Karthik Subramanian" -> "karthik-subramanian". Never too short, never reserved. */
-export function slugifyHandle(name: string): string {
+function slugifyHandle(name: string): string {
   const slug = name
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
@@ -128,7 +128,7 @@ export function slugifyHandle(name: string): string {
   return slug
 }
 
-export interface EntryDetails {
+interface EntryDetails {
   rating?: number | null
   notes?: string | null
   finishedAt?: string | null

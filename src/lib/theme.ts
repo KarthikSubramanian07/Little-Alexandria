@@ -16,7 +16,7 @@ function read(): ThemeChoice {
 const media = () => window.matchMedia('(prefers-color-scheme: dark)')
 
 /** The theme actually on screen, resolving "system" against the OS. */
-export function resolvedTheme(choice = read()): 'light' | 'dark' {
+function resolvedTheme(choice = read()): 'light' | 'dark' {
   if (choice !== 'system') return choice
   return media().matches ? 'dark' : 'light'
 }

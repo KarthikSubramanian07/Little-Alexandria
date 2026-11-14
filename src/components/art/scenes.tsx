@@ -42,7 +42,7 @@ export function PotWithSprout() {
 }
 
 /** A watering can mid-pour: a book being read is a book being tended. */
-export function WateringCan() {
+function WateringCan() {
   const reduce = useReducedMotion()
   return (
     <svg viewBox="0 0 140 110" className="h-full w-full" aria-hidden>
