@@ -170,6 +170,14 @@ export function ShelfBook({
   const { w, h } = SIZES.md
   return (
     <div className="relative shrink-0" style={{ width: w, height: h, perspective: 900 }}>
+      {/* The shadow the book throws on the back of the case, from a light up and to the left. */}
+      <div
+        aria-hidden
+        className={clsx(
+          'absolute inset-y-3 -right-3 left-5 rounded-sm bg-black/45 blur-[8px] transition-opacity duration-300',
+          (hidden || dragging) && 'opacity-0',
+        )}
+      />
       {/* The shadow on the plank, which spreads as the book lifts. */}
       <div
         aria-hidden

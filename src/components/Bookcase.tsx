@@ -10,6 +10,7 @@ import { SHELF_LABELS, SHELVES, type LibraryEntry, type Shelf } from '../../shar
 import { settle } from '../lib/motion'
 import { shelfOf, useMoveEntry } from '../lib/queries'
 import { EmptyShelfArt } from './art/scenes'
+import { Dust, ShelfProp } from './art/shelf-props'
 import { ShelfBook } from './Book'
 import { BookMenu } from './BookMenu'
 
@@ -92,12 +93,23 @@ interface BookcaseProps {
   filtered?: boolean
 }
 
-export function Bookcase({ entries, openId, onOpen, onFindBook, readOnly = false, filtered = false }: BookcaseProps) {
+export function Bookcase({
+  entries,
+  openId,
+  onOpen,
+  onFindBook,
+  readOnly = false,
+  filtered = false,
+}: BookcaseProps) {
   const move = useMoveEntry()
   const [dragging, setDragging] = useState(false)
   const [mountedAt] = useState(() => Date.now())
   const byShelf = useMemo(
-    () => Object.fromEntries(SHELVES.map((shelf) => [shelf, shelfOf(entries, shelf)])) as Record<Shelf, LibraryEntry[]>,
+    () =>
+      Object.fromEntries(SHELVES.map((shelf) => [shelf, shelfOf(entries, shelf)])) as Record<
+        Shelf,
+        LibraryEntry[]
+      >,
     [entries],
   )
   const sortable = !readOnly && !filtered
@@ -121,10 +133,21 @@ export function Bookcase({ entries, openId, onOpen, onFindBook, readOnly = false
         }}
       >
         <LayoutGroup>
-          <div className="flex flex-col gap-10 sm:gap-14">
+          {/* One piece of furniture: a crown, three shelves, and a plinth. */}
+          <div className="bookcase">
+            <div aria-hidden className="bookcase-crown">
+              <div className="picture-light" />
+            </div>
             {SHELVES.map((shelf, index) => (
-              <ShelfRow key={shelf} shelf={shelf} entries={byShelf[shelf]} index={index} onFindBook={onFindBook} />
+              <ShelfRow
+                key={shelf}
+                shelf={shelf}
+                entries={byShelf[shelf]}
+                index={index}
+                onFindBook={onFindBook}
+              />
             ))}
+            <div aria-hidden className="bookcase-plinth" />
           </div>
         </LayoutGroup>
       </DragDropProvider>
@@ -181,29 +204,37 @@ function ShelfRow({
   return (
     <motion.section
       aria-labelledby={headingId}
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ ...settle, delay: index * 0.08 }}
     >
-      <header className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
-        <div className="flex min-w-0 items-baseline gap-3">
-          <h2 id={headingId} className="font-display text-2xl font-medium tracking-tight whitespace-nowrap sm:text-[1.7rem]">
-            {SHELF_LABELS[shelf]}
-          </h2>
-          <span className="hidden truncate font-hand text-lg text-ink-faint sm:inline">{notes.hint}</span>
+      {/* First for screen readers, but drawn last: the plank's front edge, with the
+          shelf's name in a brass label holder like a library's. */}
+      <header className="plank-front order-last flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-2 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="label-holder">
+            <h2
+              id={headingId}
+              className="font-display text-[1.05rem] leading-tight font-medium tracking-tight whitespace-nowrap sm:text-lg"
+            >
+              {SHELF_LABELS[shelf]}
+            </h2>
+          </span>
+          <span className="hidden truncate font-hand text-lg sm:inline">{notes.hint}</span>
         </div>
-        <div className="ml-auto flex shrink-0 items-baseline gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           {overflow && (
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
               aria-expanded={expanded}
-              className="rounded-full px-2.5 py-0.5 text-sm font-medium text-moss hover:bg-moss-soft pointer-coarse:py-2"
+              className="rounded-full px-2.5 py-0.5 text-sm font-medium underline decoration-current/40 underline-offset-4 transition hover:bg-white/10 hover:decoration-current pointer-coarse:py-2"
             >
               {expanded ? 'Fold the shelf' : 'See the whole shelf'}
             </button>
           )}
-          <span className="font-mono text-xs text-ink-faint tabular-nums">
+          <span className="font-mono text-xs tabular-nums">
             {entries.length.toLocaleString()} {entries.length === 1 ? 'book' : 'books'}
           </span>
         </div>
@@ -214,57 +245,84 @@ function ShelfRow({
           drop(node)
           measure(node)
         }}
-        className={clsx('rounded-t-xl transition-colors duration-300', isDropTarget && 'bg-moss-soft/50')}
       >
         {entries.length === 0 ? (
-          <div className="shelf-back rounded-t-xl">
-            <EmptyShelf
-              shelf={shelf}
-              note={readOnly ? notes.emptyPublic : notes.empty}
-              onFindBook={onFindBook ? () => onFindBook(shelf) : undefined}
-            />
-            <div className="plank" />
-          </div>
+          <>
+            <div className="compartment" data-drop-target={isDropTarget || undefined}>
+              {index === 0 && <div aria-hidden className="lamp-glow" />}
+              <Dust seed={`${shelf}-empty`} count={5} />
+              <EmptyShelf
+                shelf={shelf}
+                note={readOnly ? notes.emptyPublic : notes.empty}
+                onFindBook={onFindBook ? () => onFindBook(shelf) : undefined}
+              />
+            </div>
+            <div className="plank-top" />
+          </>
         ) : (
           rows.map((row, rowIndex) => {
             const offset = expanded ? rowIndex * perRow : 0
             const hidden = !expanded ? entries.length - row.length : 0
+            const last = rowIndex === rows.length - 1
             return (
               <div
                 key={rowIndex}
-                className="shelf-back rounded-t-xl [contain-intrinsic-size:auto_224px] [content-visibility:auto]"
+                className="[contain-intrinsic-size:auto_236px] [content-visibility:auto]"
               >
-                <ol
-                  className={clsx(
-                    'flex min-h-[200px] items-end gap-6 px-4 pt-10 sm:px-6',
-                    !expanded && 'scrollbar-none overflow-x-auto',
-                  )}
-                  style={
-                    expanded
-                      ? undefined
-                      : { maskImage: 'linear-gradient(90deg, transparent, black 16px, black calc(100% - 24px), transparent)' }
-                  }
-                >
-                  <AnimatePresence initial={true} mode="popLayout">
-                    {row.map((entry, i) => (
-                      <SortableBook key={entry.id} entry={entry} index={offset + i} shelf={shelf} />
-                    ))}
-                  </AnimatePresence>
-                  {hidden > 0 && (
-                    <li className="shrink-0 list-none self-end pb-2">
-                      <button
-                        type="button"
-                        onClick={() => setExpanded(true)}
-                        className="flex h-[150px] w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-line-strong text-center text-ink-soft transition hover:border-moss hover:text-moss"
+                <div className="compartment" data-drop-target={isDropTarget || undefined}>
+                  {index === 0 && rowIndex === 0 && <div aria-hidden className="lamp-glow" />}
+                  <Dust seed={`${shelf}-${rowIndex}`} count={5} />
+                  <ol
+                    className={clsx(
+                      'relative flex min-h-[214px] items-end gap-6 px-4 pt-10 sm:px-7 pointer-coarse:pt-7',
+                      !expanded && 'scrollbar-none overflow-x-auto',
+                    )}
+                    style={
+                      expanded
+                        ? undefined
+                        : {
+                            maskImage:
+                              'linear-gradient(90deg, transparent, black 16px, black calc(100% - 24px), transparent)',
+                          }
+                    }
+                  >
+                    <AnimatePresence initial={true} mode="popLayout">
+                      {row.map((entry, i) => (
+                        <SortableBook
+                          key={entry.id}
+                          entry={entry}
+                          index={offset + i}
+                          shelf={shelf}
+                        />
+                      ))}
+                    </AnimatePresence>
+                    {hidden > 0 && (
+                      <li className="shrink-0 list-none self-end pb-2">
+                        <button
+                          type="button"
+                          onClick={() => setExpanded(true)}
+                          className="flex h-[150px] w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-[#f6ead2]/50 text-center text-[#f6ead2] transition hover:border-[#f6ead2] hover:bg-white/5"
+                        >
+                          <span className="font-display text-2xl">+{hidden.toLocaleString()}</span>
+                          <span className="font-hand text-base leading-tight">
+                            more on this shelf
+                          </span>
+                        </button>
+                      </li>
+                    )}
+                    {last && (
+                      <li
+                        aria-hidden
+                        className="pointer-events-none h-[138px] w-[100px] shrink-0 list-none self-end"
                       >
-                        <span className="font-display text-2xl">+{hidden.toLocaleString()}</span>
-                        <span className="font-hand text-base leading-tight">more on this shelf</span>
-                      </button>
-                    </li>
-                  )}
-                  {!expanded && <li aria-hidden className="w-2 shrink-0" />}
-                </ol>
-                <div className="plank" />
+                        <ShelfProp shelf={shelf} />
+                      </li>
+                    )}
+                    {!expanded && <li aria-hidden className="w-2 shrink-0" />}
+                  </ol>
+                </div>
+                <div className="plank-top" />
+                {!last && <div aria-hidden className="plank-front" />}
               </div>
             )
           })
@@ -274,9 +332,24 @@ function ShelfRow({
   )
 }
 
-function SortableBook({ entry, index, shelf }: { entry: LibraryEntry; index: number; shelf: Shelf }) {
+function SortableBook({
+  entry,
+  index,
+  shelf,
+}: {
+  entry: LibraryEntry
+  index: number
+  shelf: Shelf
+}) {
   const reduce = useReducedMotion()
-  const { dragging: anyDragging, sortable, readOnly, openId, onOpen, mountedAt } = use(BookcaseContext)
+  const {
+    dragging: anyDragging,
+    sortable,
+    readOnly,
+    openId,
+    onOpen,
+    mountedAt,
+  } = use(BookcaseContext)
   const { ref, handleRef, isDragging } = useSortable({
     id: entry.id,
     index,
@@ -294,9 +367,13 @@ function SortableBook({ entry, index, shelf }: { entry: LibraryEntry; index: num
       ref={sortable ? ref : undefined}
       layout={anyDragging || reduce ? false : 'position'}
       className="group/book relative shrink-0 list-none [touch-action:manipulation]"
-      initial={isNew && !reduce ? { opacity: 0, y: -60, rotate: -8, scale: 0.9 } : { opacity: 0, y: 10 }}
+      initial={
+        isNew && !reduce ? { opacity: 0, y: -60, rotate: -8, scale: 0.9 } : { opacity: 0, y: 10 }
+      }
       animate={{ opacity: 1, y: 0, rotate: 0, scale: 1 }}
-      exit={reduce ? { opacity: 0 } : { opacity: 0, y: -24, scale: 0.92, transition: { duration: 0.2 } }}
+      exit={
+        reduce ? { opacity: 0 } : { opacity: 0, y: -24, scale: 0.92, transition: { duration: 0.2 } }
+      }
       transition={
         isNew
           ? { type: 'spring', stiffness: 320, damping: 18, mass: 1.1 }
@@ -318,24 +395,35 @@ function SortableBook({ entry, index, shelf }: { entry: LibraryEntry; index: num
   )
 }
 
-function EmptyShelf({ shelf, note, onFindBook }: { shelf: Shelf; note: string; onFindBook?: () => void }) {
+function EmptyShelf({
+  shelf,
+  note,
+  onFindBook,
+}: {
+  shelf: Shelf
+  note: string
+  onFindBook?: () => void
+}) {
   return (
-    <div className="flex min-h-[200px] flex-col items-center justify-center gap-4 px-6 pt-6 pb-5 text-center sm:flex-row sm:gap-8 sm:text-left">
-      <div className="size-24 shrink-0 sm:size-28">
-        <EmptyShelfArt shelf={shelf} />
-      </div>
-      <div className="max-w-sm">
-        <p className="font-hand text-xl leading-snug text-ink-soft">{note}</p>
-        {onFindBook && (
-          <button
-            type="button"
-            onClick={onFindBook}
-            className="mt-3 inline-flex items-center gap-2 rounded-full border border-line-strong px-4 py-1.5 text-sm font-medium text-ink transition hover:border-moss hover:bg-moss hover:text-on-moss active:scale-[0.97]"
-          >
-            Find a book
-            <span aria-hidden>→</span>
-          </button>
-        )}
+    <div className="relative flex min-h-[214px] items-center justify-center px-4 pt-9 pb-6">
+      {/* A note pinned to the back of the shelf, so it reads on the dark paint. */}
+      <div className="pinned-note flex max-w-md -rotate-1 flex-col items-center gap-3 rounded-md px-5 py-4 text-center sm:flex-row sm:gap-6 sm:text-left">
+        <div className="size-20 shrink-0 sm:size-24">
+          <EmptyShelfArt shelf={shelf} />
+        </div>
+        <div>
+          <p className="font-hand text-xl leading-snug">{note}</p>
+          {onFindBook && (
+            <button
+              type="button"
+              onClick={onFindBook}
+              className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#3b2c20]/40 px-4 py-1.5 text-sm font-medium transition hover:border-[#3e5a3a] hover:bg-[#3e5a3a] hover:text-[#f6f0e2] active:scale-[0.97] pointer-coarse:py-2.5"
+            >
+              Find a book
+              <span aria-hidden>→</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -343,20 +431,22 @@ function EmptyShelf({ shelf, note, onFindBook }: { shelf: Shelf; note: string; o
 
 export function BookcaseSkeleton(): ReactNode {
   return (
-    <div className="flex flex-col gap-14" aria-busy aria-label="Loading your shelves">
+    <div className="bookcase" aria-busy aria-label="Loading your shelves">
+      <div aria-hidden className="bookcase-crown" />
       {SHELVES.map((shelf) => (
         <div key={shelf}>
-          <div className="mb-3 h-7 w-48 animate-pulse rounded bg-line" />
-          <div className="shelf-back rounded-t-xl">
-            <div className="flex min-h-[200px] items-end gap-6 px-6 pt-10">
+          <div className="compartment">
+            <div className="flex min-h-[214px] items-end gap-6 px-6 pt-10">
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="h-[162px] w-[108px] animate-pulse rounded-sm bg-line" />
+                <div key={i} className="h-[162px] w-[108px] animate-pulse rounded-sm bg-white/10" />
               ))}
             </div>
-            <div className="plank" />
           </div>
+          <div className="plank-top" />
+          <div className="plank-front h-11" />
         </div>
       ))}
+      <div aria-hidden className="bookcase-plinth" />
     </div>
   )
 }

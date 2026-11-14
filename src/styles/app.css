@@ -63,6 +63,9 @@
   --shadow-rgb: 52 34 20;
   --grain-opacity: 0.07;
   --grain-blend: multiply;
+  --case-paint: #3d5546;
+  --case-paint-deep: #2c4034;
+  --case-light: rgb(255 238 196 / 0.6);
 }
 
 :root[data-theme='dark'] {
@@ -91,6 +94,9 @@
   --shadow-rgb: 0 0 0;
   --grain-opacity: 0.09;
   --grain-blend: soft-light;
+  --case-paint: #1c2620;
+  --case-paint-deep: #121915;
+  --case-light: rgb(255 196 120 / 0.22);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -120,6 +126,9 @@
     --shadow-rgb: 0 0 0;
     --grain-opacity: 0.09;
     --grain-blend: soft-light;
+    --case-paint: #1c2620;
+    --case-paint-deep: #121915;
+    --case-light: rgb(255 196 120 / 0.22);
   }
 }
 
@@ -236,6 +245,334 @@ body::after {
   );
 }
 
+/* ── The bookcase ─────────────────────────────────────────────────────────
+   A real piece of furniture: oak uprights, a crown and a plinth, a painted
+   beadboard back, and planks with a top you can see and a front edge that
+   carries a brass label holder. Wood grain is SVG noise stretched along the
+   board, so every surface is drawn, not photographed. */
+.wood-vars,
+.bookcase {
+  --grain-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0035 0.11' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.08 0 0 0 0 0.02 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='900'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.11 0.0035' numOctaves='3' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.08 0 0 0 0 0.02 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+.bookcase {
+  --side: 14px;
+  position: relative;
+  isolation: isolate;
+  padding-inline: var(--side);
+  border-radius: 6px;
+  background:
+    var(--grain-v) 0 0 / 140px 900px,
+    linear-gradient(90deg, var(--wood-dark), var(--wood) 30%, var(--wood-light) 55%, var(--wood) 80%, var(--wood-dark));
+  box-shadow:
+    0 50px 90px -40px rgb(var(--shadow-rgb) / 0.7),
+    0 20px 30px -24px rgb(var(--shadow-rgb) / 0.6);
+}
+@media (min-width: 640px) {
+  .bookcase {
+    --side: 22px;
+  }
+}
+.bookcase-crown,
+.bookcase-plinth {
+  position: relative;
+  margin-inline: calc(var(--side) * -1 - 8px);
+  border-radius: 6px;
+  background:
+    var(--grain-h) 0 0 / 900px 140px,
+    linear-gradient(180deg, var(--wood-light), var(--wood) 45%, var(--wood-dark));
+}
+.bookcase-crown {
+  z-index: 2;
+  height: 26px;
+  box-shadow:
+    inset 0 2px 0 rgb(255 255 255 / 0.18),
+    0 10px 14px -8px rgb(0 0 0 / 0.5);
+}
+.bookcase-crown::after {
+  /* the bead of the moulding */
+  content: '';
+  position: absolute;
+  inset: auto 6px -6px;
+  height: 8px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(180deg, var(--wood), var(--wood-dark));
+}
+.bookcase-plinth {
+  height: 30px;
+  margin-top: -2px;
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.12);
+}
+.bookcase-plinth::before,
+.bookcase-plinth::after {
+  /* two stubby feet */
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  width: 44px;
+  height: 12px;
+  border-radius: 0 0 8px 8px;
+  background: var(--wood-dark);
+}
+.bookcase-plinth::before {
+  left: 18px;
+}
+.bookcase-plinth::after {
+  right: 18px;
+}
+
+/* A brass picture light under the crown. Off by day; after dark it pours warm
+   light down over the top shelf. */
+.picture-light {
+  position: absolute;
+  left: 50%;
+  bottom: -15px;
+  width: min(42%, 300px);
+  height: 11px;
+  transform: translateX(-50%);
+  border-radius: 6px 6px 9px 9px;
+  background: linear-gradient(180deg, #f3d38a, #b8862f 55%, #7d561b);
+  box-shadow:
+    0 3px 6px rgb(0 0 0 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.55);
+}
+.picture-light::before {
+  /* the arm it hangs from */
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  width: 6px;
+  height: 9px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: linear-gradient(90deg, #8f6522, #e9c46f, #8f6522);
+}
+.lamp-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(86%, 720px);
+  height: 280px;
+  transform: translateX(-50%);
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  /* Laid over the books as well as the wall, so the covers under the lamp warm up too. */
+  background: radial-gradient(50% 100% at 50% 0, rgb(255 205 130 / 0.55), rgb(255 180 100 / 0.22) 40%, transparent 80%);
+  transition: opacity 0.8s;
+}
+:root[data-theme='dark'] .lamp-glow {
+  opacity: 1;
+  animation: lamp-hum 7s ease-in-out infinite alternate;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .lamp-glow {
+    opacity: 1;
+    animation: lamp-hum 7s ease-in-out infinite alternate;
+  }
+}
+@keyframes lamp-hum {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* One compartment: the painted back, shadowed by the plank above and the uprights beside. */
+.compartment {
+  position: relative;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 46px, rgb(0 0 0 / 0.22) 46px 47px, rgb(255 255 255 / 0.05) 47px 48px),
+    var(--grain-v) 0 0 / 140px 900px,
+    linear-gradient(180deg, var(--case-paint-deep), var(--case-paint) 35%, var(--case-paint));
+  box-shadow:
+    inset 0 26px 28px -18px rgb(0 0 0 / 0.6),
+    inset 22px 0 24px -20px rgb(0 0 0 / 0.55),
+    inset -22px 0 24px -20px rgb(0 0 0 / 0.55);
+  transition: background-color 0.3s;
+}
+.compartment[data-drop-target] {
+  box-shadow:
+    inset 0 0 0 3px color-mix(in oklab, var(--marigold) 70%, transparent),
+    inset 0 26px 28px -18px rgb(0 0 0 / 0.6);
+}
+
+/* Day: sunlight from a window slides slowly across the shelves, dust and all. */
+.compartment::before {
+  content: '';
+  position: absolute;
+  inset: -20% -40%;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    105deg,
+    transparent 0 16%,
+    var(--case-light) 19% 27%,
+    transparent 31% 46%,
+    color-mix(in oklab, var(--case-light) 60%, transparent) 48% 51%,
+    transparent 54% 70%
+  );
+  mix-blend-mode: soft-light;
+  animation: sunlight 26s ease-in-out infinite alternate;
+}
+@keyframes sunlight {
+  from {
+    transform: translateX(-8%);
+  }
+  to {
+    transform: translateX(8%);
+  }
+}
+/* Night: no sun, just one warm picture light per shelf. */
+:root[data-theme='dark'] .compartment::before {
+  inset: 0;
+  animation: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(60% 75% at 50% -12%, var(--case-light), transparent 72%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .compartment::before {
+    inset: 0;
+    animation: none;
+    mix-blend-mode: screen;
+    background: radial-gradient(60% 75% at 50% -12%, var(--case-light), transparent 72%);
+  }
+}
+
+/* The plank's top, which the books stand on. */
+.plank-top {
+  position: relative;
+  height: 12px;
+  margin-inline: calc(var(--side) * -0.4);
+  background:
+    var(--grain-h) 0 0 / 900px 140px,
+    linear-gradient(180deg, color-mix(in oklab, var(--wood-light) 80%, white), var(--wood-light));
+  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 100%, 0 100%);
+}
+/* And its front edge, where the label holder sits. */
+.plank-front {
+  position: relative;
+  z-index: 1;
+  margin-inline: calc(var(--side) * -0.4);
+  min-height: 18px;
+  color: #f6ead2;
+  background:
+    var(--grain-h) 0 0 / 900px 140px,
+    linear-gradient(180deg, var(--wood), var(--wood-dark));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 12px 16px -10px rgb(0 0 0 / 0.6);
+}
+/* A library label holder: a brass frame around a paper card. */
+.label-holder {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: 4px;
+  background: linear-gradient(160deg, #f3d38a, #b8862f 40%, #e9c46f 60%, #8f6522);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.6);
+}
+.label-holder > * {
+  padding: 2px 12px 3px;
+  border-radius: 2px;
+  color: #2a1e16;
+  background: linear-gradient(180deg, #fbf5e6, #efe3c8);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+/* A note pinned to the back of an empty shelf, so its words stay readable. */
+.pinned-note {
+  position: relative;
+  background: linear-gradient(180deg, #fbf6ea, #f1e7d1);
+  color: #3b2c20;
+  box-shadow: 0 14px 22px -12px rgb(0 0 0 / 0.6);
+}
+.pinned-note::before {
+  /* a strip of washi tape */
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 72px;
+  height: 20px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: color-mix(in oklab, var(--marigold) 55%, transparent);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+}
+
+/* Dust drifting through the sunbeam. Daylight only. */
+.dust {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgb(255 244 214 / 0.8);
+  pointer-events: none;
+  animation: dust var(--dur, 14s) linear var(--delay, 0s) infinite;
+}
+@keyframes dust {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(var(--dx, 60px), var(--dy, 90px));
+    opacity: 0;
+  }
+}
+:root[data-theme='dark'] .dust {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .dust {
+    display: none;
+  }
+}
+
+/* A candle flame, for whoever is reading late. */
+.flame {
+  transform-origin: 50% 100%;
+  animation: flicker 2.4s ease-in-out infinite;
+}
+@keyframes flicker {
+  0%,
+  100% {
+    transform: scale(1, 1) rotate(-2deg);
+  }
+  30% {
+    transform: scale(0.94, 1.08) rotate(2deg);
+  }
+  55% {
+    transform: scale(1.04, 0.95) rotate(-1deg);
+  }
+  80% {
+    transform: scale(0.97, 1.05) rotate(1.5deg);
+  }
+}
+.sway {
+  transform-origin: 50% 100%;
+  animation: sway 5s ease-in-out infinite alternate;
+}
+@keyframes sway {
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(3deg);
+  }
+}
+
 /* ── Books in 3D ──────────────────────────────────────────────────────── */
 .book-3d {
   --w: 112px;
@@ -349,3 +686,4 @@ body::after {
       linear-gradient(180deg, transparent 0%, rgb(0 0 0 / 0.25) 100%);
   }
 }
+
