@@ -30,7 +30,7 @@ export function cleanThumbnail(url: string | undefined): string | null {
 export const largeCover = (id: string) =>
   `https://books.google.com/books/publisher/content/images/frontcover/${id}?fife=w600-h900&source=gbs_api`
 
-export function toSearchResult(volume: Volume): SearchResult | null {
+function toSearchResult(volume: Volume): SearchResult | null {
   const info = volume.volumeInfo
   if (!info.title) return null
   return {

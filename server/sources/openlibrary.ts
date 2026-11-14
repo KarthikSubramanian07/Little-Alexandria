@@ -33,7 +33,7 @@ export function coverIdFor(doc: SearchDoc): number | null {
   return doc.cover_i ?? null
 }
 
-export const coverById = (id: number, size: 'M' | 'L') =>
+const coverById = (id: number, size: 'M' | 'L') =>
   `https://covers.openlibrary.org/b/id/${id}-${size}.jpg?default=false`
 
 /** "/works/OL123W" -> "OL123W" */
@@ -65,7 +65,7 @@ export function toSearchResult(doc: SearchDoc): SearchResult {
 }
 
 /** Everything the search index knows, without the extra trip for a description. */
-export function metadataFromDoc(doc: SearchDoc): BookMetadata {
+function metadataFromDoc(doc: SearchDoc): BookMetadata {
   const cover = coverIdFor(doc)
   return {
     source: 'openlibrary',
@@ -115,15 +115,6 @@ export async function matchOpenLibrary(row: {
   const byTitle = asCandidates(await searchDocs({ title }, 12))
   const lastTry = bestMatch(row.title, row.author, byTitle) ?? exactPopular(row.title, byTitle)
   return lastTry ? metadataFromDoc(lastTry) : null
-}
-
-/** Fetch a work's description, for books imported without one. */
-export async function describeWork(sourceId: string): Promise<string | null> {
-  if (!/^OL\d+W$/.test(sourceId)) return null
-  const response = await fetch(`${BASE}/works/${sourceId}.json`, { headers: HEADERS })
-  if (!response.ok) return null
-  const work = (await response.json()) as { description?: unknown }
-  return cleanOpenLibraryDescription(work.description)
 }
 
 export const openLibrary: BookSourceClient = {

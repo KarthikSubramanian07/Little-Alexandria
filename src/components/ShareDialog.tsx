@@ -10,7 +10,7 @@ import { snappy } from '../lib/motion'
 import { meQuery } from '../lib/queries'
 import { toast } from '../lib/toast'
 
-export const shareUrl = (handle: string) => `${window.location.origin}/u/${handle}`
+const shareUrl = (handle: string) => `${window.location.origin}/u/${handle}`
 
 /**
  * Turn sharing on, pick an address, and send it. Shelves, stars, and the

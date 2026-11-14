@@ -26,7 +26,7 @@ function SmartLink({ href, children }: { href: string; children: ReactNode }) {
 }
 
 /** Inline text with its [links](/x), `code`, and **bold** marks. */
-export function InlineText({ text }: { text: string }) {
+function InlineText({ text }: { text: string }) {
   return (
     <>
       {parseInline(text).map((part, index) => {

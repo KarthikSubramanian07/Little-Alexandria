@@ -50,7 +50,7 @@ export function prefersMarkdown(accept: string | null): boolean {
 
 const DOCS_BY_PATH = new Map(SITE_DOCS.map((doc) => [doc.path, doc]))
 
-export type Route =
+type Route =
   | { kind: 'doc'; doc: SiteDoc }
   | { kind: 'shared'; handle: string }
   | { kind: 'private'; title: string }
@@ -114,7 +114,7 @@ const helpHtml = `<ul>${HELP_LINKS.map((item) => {
   return `<li><a href="${escapeHtml(href!)}">${escapeHtml(text!)}</a></li>`
 }).join('')}</ul>`
 
-export function notFoundPage(path: string): Page {
+function notFoundPage(path: string): Page {
   const message = `There is no page at ${path} on Little Alexandria. It may have moved, or never existed.`
   return {
     status: 404,
@@ -137,7 +137,7 @@ export function notFoundPage(path: string): Page {
 }
 
 /** A /u/ address with nobody home, or whose reader keeps their shelves private. */
-export function closedLibraryPage(path: string): Page {
+function closedLibraryPage(path: string): Page {
   const message = `There is no shared library at ${path}. Either nobody lives there, or its reader keeps their shelves private.`
   return {
     ...notFoundPage(path),
@@ -184,7 +184,7 @@ const byline = (entry: LibraryEntry) =>
   `${entry.book.title}${entry.book.authors[0] ? ` by ${entry.book.authors[0]}` : ''}`
 
 /** A shared library, listed shelf by shelf. Notes never appear: the store already strips them. */
-export function sharedPage(
+function sharedPage(
   handle: string,
   shared: { profile: PublicProfile; entries: LibraryEntry[] },
 ): Page {
@@ -281,7 +281,7 @@ export function renderHead(page: Pick<Page, 'title' | 'description' | 'path' | '
 }
 
 /** Who runs the site and what it is, for search engines and agents. */
-export function structuredData() {
+function structuredData() {
   const organization = `${SITE.origin}/#organization`
   return {
     '@context': 'https://schema.org',
@@ -325,7 +325,7 @@ export function structuredData() {
 }
 
 /** Put a page into the built index.html: its head tags, and its content inside #root. */
-export function renderShell(shell: string, page: Page): string {
+function renderShell(shell: string, page: Page): string {
   const start = shell.indexOf(HEAD_START)
   const end = shell.indexOf(HEAD_END)
   let html =

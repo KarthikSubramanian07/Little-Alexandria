@@ -9,7 +9,7 @@ import { settle } from '../lib/motion'
 /** Spines are sampled once per book per page load, then remembered by the catalogue. */
 const sampled = new Set<string>()
 
-export type BookSize = 'sm' | 'md' | 'lg'
+type BookSize = 'sm' | 'md' | 'lg'
 const SIZES: Record<BookSize, { w: number; h: number }> = {
   sm: { w: 64, h: 96 },
   md: { w: 108, h: 162 },
@@ -17,7 +17,7 @@ const SIZES: Record<BookSize, { w: number; h: number }> = {
 }
 
 /** Spine thickness follows page count, so a doorstop looks like one. */
-export function thicknessFor(pages: number | null, size: BookSize) {
+function thicknessFor(pages: number | null, size: BookSize) {
   const scale = size === 'lg' ? 2 : size === 'sm' ? 0.6 : 1
   return Math.round(Math.max(9, Math.min(34, (pages ?? 300) / 22)) * scale)
 }

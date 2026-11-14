@@ -2,7 +2,7 @@
 // when you walk past it. Pauses under the pointer; still when motion is reduced.
 import { useState } from 'react'
 import type { Book } from '../../../shared/types'
-import { letteringOn, SHOWCASE_BOOKS } from './showcase'
+import { letteringOn, SHOWCASE_BOOKS, thumbnailOf } from './showcase'
 
 function Jacket({ book, index }: { book: Book; index: number }) {
   const [failed, setFailed] = useState(false)
@@ -17,7 +17,7 @@ function Jacket({ book, index }: { book: Book; index: number }) {
       >
         {book.coverUrl && !failed ? (
           <img
-            src={book.coverUrl}
+            src={thumbnailOf(book)!}
             alt=""
             loading="lazy"
             decoding="async"

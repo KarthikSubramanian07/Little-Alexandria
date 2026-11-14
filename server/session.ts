@@ -7,7 +7,7 @@ import { SESSION_TTL_MS, type Store } from './store'
 export const SESSION_COOKIE = 'la_session'
 const RENEW_WHEN_LEFT_MS = 1000 * 60 * 60 * 24 * 15
 
-export function generateSessionToken(): string {
+function generateSessionToken(): string {
   const bytes = new Uint8Array(20)
   crypto.getRandomValues(bytes)
   return encodeBase32LowerCaseNoPadding(bytes)

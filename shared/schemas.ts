@@ -1,10 +1,10 @@
 import { z } from 'zod'
 import { SHELVES } from './types'
 
-export const shelfSchema = z.enum(SHELVES)
+const shelfSchema = z.enum(SHELVES)
 
 /** A real calendar date in 'YYYY-MM-DD' form. */
-export const isoDateSchema = z
+const isoDateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/)
   .refine((value) => {
@@ -13,7 +13,7 @@ export const isoDateSchema = z
   }, 'Not a real date')
 
 /** fractional-indexing keys are base62 strings. */
-export const positionSchema = z.string().regex(/^[0-9A-Za-z]{1,64}$/)
+const positionSchema = z.string().regex(/^[0-9A-Za-z]{1,64}$/)
 
 export const addBookSchema = z.object({
   source: z.enum(['openlibrary', 'google', 'fixture']),
@@ -57,7 +57,7 @@ export const profileSchema = z
   .partial()
   .refine((value) => Object.keys(value).length > 0, 'Nothing to update')
 
-export const importRowSchema = z.object({
+const importRowSchema = z.object({
   title: z.string().trim().min(1).max(300),
   author: z.string().trim().max(200).nullable(),
   isbn: z

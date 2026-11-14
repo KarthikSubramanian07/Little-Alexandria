@@ -61,13 +61,13 @@ export interface RelatedResponse {
   adaptations: Adaptation[]
 }
 
-export interface SharedLibrary {
+interface SharedLibrary {
   profile: PublicProfile
   entries: LibraryEntry[]
   stats: ReadingStats
 }
 
-export interface DiscoverSection {
+interface DiscoverSection {
   kind: 'author' | 'genre'
   title: string
   books: SearchResult[]

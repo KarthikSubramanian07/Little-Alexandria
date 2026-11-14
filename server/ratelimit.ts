@@ -4,7 +4,7 @@
 // no database writes, and honest about being per server instance.
 import type { MiddlewareHandler } from 'hono'
 
-export interface RateLimitPolicy {
+interface RateLimitPolicy {
   /** Name used in the RateLimit-Policy header. */
   name: string
   /** Requests allowed per window. */

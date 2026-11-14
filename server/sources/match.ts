@@ -88,7 +88,7 @@ export function authorMatches(wanted: string | null, candidates: readonly string
   return names.some((name) => theirs.some((other) => surnamesMatch(surname(name), other)))
 }
 
-export interface Candidate {
+interface Candidate {
   title: string
   authors: string[]
   editionCount?: number
