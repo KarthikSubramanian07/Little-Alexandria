@@ -25,16 +25,19 @@ export const HOME = {
     {
       numeral: 'i.',
       title: 'Shelve',
+      headline: ['Every book in the stacks,', 'one tap from your shelf.'],
       text: 'Search every book in the stacks and set it on a shelf in one click: Want to Read, Currently Reading, or Read. Drag books between shelves like you would at home.',
     },
     {
       numeral: 'ii.',
       title: 'Annotate',
+      headline: ['A catalogue card', 'for every book you keep.'],
       text: 'Each book opens into its own catalogue card. Give it stars, note the day you started and finished, and keep notes in the margin.',
     },
     {
       numeral: 'iii.',
       title: 'Grow',
+      headline: ['Finish a book,', 'plant a flower.'],
       text: 'Every finished book plants a flower in your reading garden, coloured like its cover. Set a yearly goal and watch the sun come up.',
     },
   ],
@@ -43,6 +46,8 @@ export const HOME = {
     cite: 'Marcus Tullius Cicero, who would have liked this place',
   },
   caption: 'yours, give or take a few hundred books',
+  howHeadline: ['Three small rituals,', 'one whole library.'],
+  closing: ['Your shelves are', 'waiting for you.'],
   footer:
     'Little Alexandria · a hand-drawn bookshelf and reading tracker, made with love for libraries',
 } as const

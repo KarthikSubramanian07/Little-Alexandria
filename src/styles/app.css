@@ -687,3 +687,194 @@ body::after {
   }
 }
 
+/* ── The landing page ─────────────────────────────────────────────────────
+   A reading room: warm wall, sunlight slanting through a window you can't
+   see, the bookcase standing on a wooden floor. */
+.reading-room {
+  background:
+    radial-gradient(70% 55% at 18% 0%, rgb(255 236 190 / 0.55), transparent 70%),
+    linear-gradient(180deg, var(--paper) 0%, color-mix(in oklab, var(--paper-deep) 80%, var(--wood-light)) 100%);
+}
+.room-beams {
+  position: absolute;
+  inset: -10% -30% 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    112deg,
+    transparent 0 12%,
+    rgb(255 240 200 / 0.45) 14% 19%,
+    transparent 22% 30%,
+    rgb(255 240 200 / 0.25) 31% 33%,
+    transparent 35% 50%
+  );
+  mask-image: linear-gradient(180deg, black, transparent 85%);
+  animation: beams 30s ease-in-out infinite alternate;
+}
+@keyframes beams {
+  from {
+    transform: translateX(-4%);
+  }
+  to {
+    transform: translateX(4%);
+  }
+}
+.room-floor {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: -1;
+  border-top: 6px solid color-mix(in oklab, var(--wood-dark) 70%, var(--paper));
+  background:
+    repeating-linear-gradient(90deg, transparent 0 220px, rgb(0 0 0 / 0.14) 220px 222px),
+    linear-gradient(180deg, color-mix(in oklab, var(--wood-light) 75%, var(--paper)), var(--wood-light) 70%);
+  box-shadow: inset 0 14px 22px -12px rgb(0 0 0 / 0.4);
+}
+:root[data-theme='dark'] .reading-room {
+  background:
+    radial-gradient(60% 60% at 50% 30%, rgb(255 190 110 / 0.12), transparent 70%),
+    linear-gradient(180deg, var(--paper), var(--paper-deep));
+}
+:root[data-theme='dark'] .room-beams {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .reading-room {
+    background:
+      radial-gradient(60% 60% at 50% 30%, rgb(255 190 110 / 0.12), transparent 70%),
+      linear-gradient(180deg, var(--paper), var(--paper-deep));
+  }
+  :root:not([data-theme='light']) .room-beams {
+    display: none;
+  }
+}
+
+/* The cat: breathing, tail swinging now and then, the odd z drifting up. */
+.cat-breath {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: breathe 3.6s ease-in-out infinite;
+}
+@keyframes breathe {
+  50% {
+    transform: scale(1.025, 1.05);
+  }
+}
+.cat-tail {
+  transform-origin: 132px 78px;
+  animation: tail 6s ease-in-out infinite;
+}
+@keyframes tail {
+  0%,
+  60%,
+  100% {
+    transform: rotate(0deg);
+  }
+  70% {
+    transform: rotate(14deg);
+  }
+  80% {
+    transform: rotate(-6deg);
+  }
+  90% {
+    transform: rotate(8deg);
+  }
+}
+.cat-z {
+  opacity: 0;
+  animation: snooze 3.9s ease-out infinite;
+}
+@keyframes snooze {
+  0% {
+    opacity: 0;
+    transform: translate(0, 6px);
+  }
+  30% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(10px, -14px);
+  }
+}
+
+/* The river of covers. */
+.marquee-mask {
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+}
+.marquee {
+  animation: marquee 70s linear infinite;
+}
+.marquee-mask:hover .marquee {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    animation: none;
+  }
+}
+
+/* The chapter cards: pastel, stacked, each with its own accent. */
+.chapter-card {
+  background: var(--tint);
+  box-shadow: 0 -18px 40px -28px rgb(var(--shadow-rgb) / 0.45);
+}
+.chapter-accent {
+  color: var(--accent);
+}
+.chapter-sage {
+  --tint: #e2e9d6;
+  --accent: #3e5a3a;
+}
+.chapter-butter {
+  --tint: #f5e7c4;
+  --accent: #8a4f12;
+}
+.chapter-rose {
+  --tint: #f3dcd3;
+  --accent: #9a3d3d;
+}
+.closing-band {
+  background:
+    radial-gradient(80% 90% at 50% 0%, rgb(255 230 180 / 0.5), transparent 70%),
+    var(--moss-soft);
+}
+:root[data-theme='dark'] .chapter-sage {
+  --tint: #1d261b;
+  --accent: #9dbb93;
+}
+:root[data-theme='dark'] .chapter-butter {
+  --tint: #2a2214;
+  --accent: #f2c77a;
+}
+:root[data-theme='dark'] .chapter-rose {
+  --tint: #2c1d1a;
+  --accent: #e09a90;
+}
+:root[data-theme='dark'] .closing-band {
+  background:
+    radial-gradient(80% 90% at 50% 0%, rgb(255 190 110 / 0.12), transparent 70%),
+    var(--moss-soft);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .chapter-sage {
+    --tint: #1d261b;
+    --accent: #9dbb93;
+  }
+  :root:not([data-theme='light']) .chapter-butter {
+    --tint: #2a2214;
+    --accent: #f2c77a;
+  }
+  :root:not([data-theme='light']) .chapter-rose {
+    --tint: #2c1d1a;
+    --accent: #e09a90;
+  }
+  :root:not([data-theme='light']) .closing-band {
+    background:
+      radial-gradient(80% 90% at 50% 0%, rgb(255 190 110 / 0.12), transparent 70%),
+      var(--moss-soft);
+  }
+}
