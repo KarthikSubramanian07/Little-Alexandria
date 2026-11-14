@@ -9,6 +9,7 @@ import { snappy } from '../lib/motion'
 import { api } from '../lib/api'
 import { useSignOut } from '../lib/queries'
 import { useTheme, type ThemeChoice } from '../lib/theme'
+import { SiteFooter } from './DocPage'
 import { ShareDialog } from './ShareDialog'
 import { Wordmark } from './Wordmark'
 
@@ -167,6 +168,9 @@ export function AppShell({
       <main id="main" className="mx-auto max-w-6xl px-4 pt-6 sm:px-8 sm:pt-10">
         {children}
       </main>
+      <div className="mx-auto mt-16 max-w-6xl px-4 sm:px-8">
+        <SiteFooter />
+      </div>
 
       {/* On phones the pages live in a tab bar, where thumbs already are. */}
       <nav
