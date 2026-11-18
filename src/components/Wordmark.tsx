@@ -31,7 +31,7 @@ export function Wordmark({ nameFrom = 'sm' }: { nameFrom?: 'sm' | 'lg' }) {
         className={`hidden font-display text-[1.35rem] leading-none font-medium tracking-tight ${nameFrom === 'lg' ? 'lg:inline' : 'sm:inline'}`}
       >
         Little{' '}
-        <span className="relative isolate ml-[0.4em] inline-block italic">
+        <span className="relative isolate inline-block italic">
           Alexandria
           <Meadow />
         </span>
